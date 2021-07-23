@@ -86,7 +86,13 @@ class SD_OT_SoundLoader(bpy.types.Operator):
             self.player = MusicPlayer(path)
             self.player.play()
 
+class SD_OT_BatchImport(bpy.types.Operator):
+    bl_idname = 'sd.batch_import'
+    bl_label = 'Batch Import'
 
+
+    def execute(self, context):
+        return {"FINISHED"}
 
 def register():
     bpy.utils.register_class(SD_OT_SetKeymap)

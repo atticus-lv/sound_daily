@@ -5,12 +5,14 @@ from .preferences import SD_Preference, get_pref
 from .util import SD_Preview
 
 img_preview = SD_Preview()
+enum_images = img_preview.register()
 
 friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Middle',
                   'WHEELUPMOUSE': "Mouse wheel up", "WHEELDOWNMOUSE": "Mouse wheel down",
                   'ESC': 'Esc', 'RET': 'Enter', 'ONE': '1', 'TWO': '2', 'THREE': '3', 'FOUR': '4',
                   'FIVE': '5', 'SIX': '6', 'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'ZERO': '0',
-                  'COMMA': 'Comma', 'PERIOD': 'Period'}
+                  'COMMA': 'Comma', 'PERIOD': 'Period',
+                  'NONE':'无'}
 
 
 class SD_UL_SoundList(bpy.types.UIList):
@@ -19,24 +21,23 @@ class SD_UL_SoundList(bpy.types.UIList):
 
         row = layout.row(align=1)
 
-        if pref.sound_list_index == index:
-            row.label(text=f'', icon='EDITMODE_HLT')
-        else:
-            row.separator(factor=0.5)
-
         row.prop(item, 'name', text='', emboss=False)
 
-        text = ''
-        if item.ctrl: text += 'Ctrl+'
-        if item.alt: text += 'Alt+'
-        if item.shift: text += 'Shift+'
-        text += friendly_names[item.key] if item.key in friendly_names else item.key
-        row.label(text=text)
+        if pref.sound_list_index == index:
+            row.label(text='编辑中', icon='EDITMODE_HLT')
+        else:
+            text = ''
+            if item.ctrl: text += 'Ctrl+'
+            if item.alt: text += 'Alt+'
+            if item.shift: text += 'Shift+'
+            text += friendly_names[item.key] if item.key in friendly_names else item.key
+            row.label(text=text)
 
         row.prop(item, 'enable', text='')
 
     ### TODO 组属性自定义搜索，组屏蔽等功能
     ### TODO UI造型：按钮/下拉菜单？
+
 
 class SD_OT_SoundListAction(bpy.types.Operator):
     """操作选中项"""
@@ -78,7 +79,7 @@ class SD_OT_SoundListAction(bpy.types.Operator):
 class SD_PT_3DViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = '嘉心糖'
+    bl_category = '嘉然之声'
     bl_label = '关注嘉心糖|顿顿破大防'
 
     def draw(self, context):
@@ -86,16 +87,40 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         pref = get_pref()
         col = layout.column()
 
-        col.template_icon_view(context.scene, "sd_thumbnails", scale=5)
+        # 照片位
+        col.template_icon_view(context.scene, "sd_thumbnails", scale=pref.image_scale)
+        col.separator(factor=0.5)
+
+        # 聆听位
+        row = col.row()
+        if context.window_manager.sd_loading_sound:
+            row.prop(context.window_manager, 'sd_loading_sound', text='聆听结束', icon='CANCEL')
+        else:
+            row.operator('sd.sound_loader', text='嘉然之声', icon='PLAY')
+
+        # 设置位
+        row.prop(pref, 'show_pref', icon='PREFERENCES', text='')
+
+        if pref.show_pref:
+            col.separator(factor=0.5)
+            box = col.box()
+            box.label(text='照片设置', icon='IMAGE_DATA')
+            box.prop(pref,'image_scale',slider=1)
+
+            box = col.box()
+            box.label(text='语音设置',icon='PLAY_SOUND')
+            self.draw_settings(pref, box, context)
+
+    def draw_settings(self, pref, col, context):
         # Sound List
         #########################
-        row = col.split(factor=0.85)
+        row = col.row()
         row.template_list(
             'SD_UL_SoundList', 'Sound List',
             pref, 'sound_list',
             pref, 'sound_list_index')
 
-        col1 = row.column(align=0)
+        col1 = row.column()
         col2 = col1.column(align=1)
         col2.operator('sd.sound_list_action', icon='ADD', text='').action = 'ADD'
         col2.operator('sd.sound_list_action', icon='REMOVE', text='').action = 'REMOVE'
@@ -147,13 +172,13 @@ def draw_top_bar(self, context):
 
 def register():
     bpy.types.Scene.sd_thumbnails = EnumProperty(
-        items=img_preview.register())
+        items=enum_images)
 
     bpy.utils.register_class(SD_OT_SoundListAction)
     bpy.utils.register_class(SD_UL_SoundList)
     bpy.utils.register_class(SD_PT_3DViewPanel)
 
-    bpy.types.TOPBAR_MT_editor_menus.append(draw_top_bar)
+    # bpy.types.TOPBAR_MT_editor_menus.append(draw_top_bar)
 
 
 def unregister():
@@ -163,4 +188,4 @@ def unregister():
 
     del bpy.types.Scene.sd_thumbnails
 
-    bpy.types.TOPBAR_MT_editor_menus.remove(draw_top_bar)
+    # bpy.types.TOPBAR_MT_editor_menus.remove(draw_top_bar)

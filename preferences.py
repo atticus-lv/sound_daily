@@ -1,8 +1,9 @@
 import bpy
-from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty
 from bpy.types import PropertyGroup
 
 from . import __folder_name__
+from .ui_panel import enum_images
 
 
 def get_pref():
@@ -21,12 +22,17 @@ class SoundListItemProperty(PropertyGroup):
 
     ### TODO 组属性以满足嘉心糖出轨需求
 
+
 class SD_Preference(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     sound_list: CollectionProperty(type=SoundListItemProperty)
     sound_list_index: IntProperty(default=0, min=0)
 
+    # UI
+    image_scale: FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
+
+    show_pref: BoolProperty(name='设置', default=False)
 
     def draw(self, context):
         pass
@@ -46,5 +52,3 @@ def register():
 def unregister():
     for cls in classes:
         bpy.utils.unregister_class(cls)
-
-
