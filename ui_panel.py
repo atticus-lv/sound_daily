@@ -35,6 +35,8 @@ class SD_UL_SoundList(bpy.types.UIList):
 
         row.prop(item, 'enable', text='')
 
+    ### TODO 组属性自定义搜索，组屏蔽等功能
+    ### TODO UI造型：按钮/下拉菜单？
 
 class SD_OT_SoundListAction(bpy.types.Operator):
     """操作选中项"""
@@ -138,9 +140,9 @@ def draw_top_bar(self, context):
     layout.separator(factor=0.5)
 
     if context.window_manager.sd_loading_sound:
-        layout.prop(context.window_manager, 'sd_loading_sound', text='然然带我走吧', icon='CANCEL')
+        layout.prop(context.window_manager, 'sd_loading_sound', text='聆听结束', icon='CANCEL')
     else:
-        layout.operator('sd.sound_loader', text='嘉门', icon='PLAY')
+        layout.operator('sd.sound_loader', text='嘉然之声', icon='PLAY')
 
 
 def register():

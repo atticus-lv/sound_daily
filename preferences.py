@@ -19,6 +19,7 @@ class SoundListItemProperty(PropertyGroup):
     shift: BoolProperty(name='Shift', default=False)
     key: StringProperty(default='NONE')
 
+    ### TODO 组属性以满足嘉心糖出轨需求
 
 class SD_Preference(bpy.types.AddonPreferences):
     bl_idname = __package__

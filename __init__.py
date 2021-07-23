@@ -1,13 +1,13 @@
 bl_info = {
-    "name"       : "Sound Daily (Saint Diana)",
+    "name"       : "嘉然之声 (Sound Daily)",
     "author"     : "Atticus",
     "version"    : (0, 1),
     "blender"    : (2, 93, 0),
     "location"   : "3D视窗>侧面板",
-    "description": "时刻聆听圣嘉然吧，你的建模纯度将得到",
+    "description": "时刻聆听圣嘉然吧，获取属于你的建模纯度",
     'warning'    : "",
     "doc_url"    : "",
-    "category"   : "嘉心糖",
+    "category"   : "Sound",
 }
 
 import bpy
