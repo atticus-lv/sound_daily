@@ -9,7 +9,7 @@ ignored_keys = {'LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_ALT',
                 'RIGHT_ALT', 'LEFT_CTRL', 'RIGHT_CTRL', 'TIMER',
                 'MOUSEMOVE', 'EVT_TWEAK_L', 'INBETWEEN_MOUSEMOVE', 'TIMER_REPORT', 'TIMER1',
                 'TIMERREGION', 'WINDOW_DEACTIVATE', 'NONE',
-                'LEFTMOUSE', 'MIDDLEMOUSE', 'RIGHTMOUSE'} #remove mouse type
+                'LEFTMOUSE', 'MIDDLEMOUSE', 'RIGHTMOUSE'}  # remove mouse type
 
 clear_events = {'WINDOW_DEACTIVATE', 'TIMER1', 'TIMER_REPORT'}
 
@@ -30,13 +30,13 @@ class KeyController():
         key = self.get_event_type(event)
         return event.ctrl, event.shift, event.alt, key
 
-    def get_binds_path(self, event):
+    def get_binds_item(self, event):
         is_ctrl, is_alt, is_shift, key = self.get_result(event)
         pref = get_pref()
         for item in pref.sound_list:
             if not item.enable: continue
             if item.ctrl == is_ctrl and item.shift == is_shift and item.alt == is_alt and item.key == key:
-                return item.path
+                return item
 
 
 class MusicPlayer():
@@ -45,22 +45,23 @@ class MusicPlayer():
         self.sound = self.get_music(music_path)
 
     def get_music(self, path):
-        try:
-            sound = aud.Sound(path)
-        except TypeError:
-            sound = None
-        return sound
+        return aud.Sound(path)
 
     def play(self):
-        if self.sound:
+        try:
             self.device.play(self.sound)
+            return True
+        except Exception:
+            return None
+
 
 # code from another plugin of mine "https://atticus-lv.github.io/RenderStackNode/#/"
 import bpy.utils.previews
 import os
 
-img_dir = os.path.join(os.path.dirname(__file__), 'res','img')
+img_dir = os.path.join(os.path.dirname(__file__), 'res', 'img')
 extensions = ('.png', '.jpg', '.jpeg')
+
 
 class SD_Preview():
     def __init__(self):
@@ -75,7 +76,7 @@ class SD_Preview():
         for i, image_name in enumerate(os.listdir(img_dir)):
             if image_name.endswith(extensions):
                 filepath = os.path.join(img_dir, image_name)
-                thumb = pcoll.load(image_name, filepath, 'IMAGE') # name, image_path, type
+                thumb = pcoll.load(image_name, filepath, 'IMAGE')  # name, image_path, type
                 enum_items.append((image_name, image_name, "", thumb.icon_id, i))
 
         return enum_items
@@ -85,10 +86,9 @@ class SD_Preview():
             bpy.utils.previews.remove(pcoll)
         self.preview_collections.clear()
 
-    def get_thumb_image(self,image_name):
+    def get_thumb_image(self, image_name):
         return self.preview_collections["sd_icon"][image_name]
 
-    def get_thumb_image_icon_id(self,image_name):
+    def get_thumb_image_icon_id(self, image_name):
         thumb = self.get_image(image_name)
         return thumb.icon_id
-

@@ -18,6 +18,8 @@ class SoundListItemProperty(PropertyGroup):
     ctrl: BoolProperty(name='Ctrl', default=False)
     shift: BoolProperty(name='Shift', default=False)
     key: StringProperty(default='NONE')
+    # state
+    error:BoolProperty(name='文件错误')
 
     ### TODO 组属性以满足嘉心糖出轨需求
 

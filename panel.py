@@ -17,21 +17,26 @@ friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Mi
 class SD_UL_SoundList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         pref = get_pref()
-
         row = layout.row(align=1)
 
+        # name
         row.prop(item, 'name', text='', emboss=False)
 
-        if pref.sound_list_index == index:
-            row.label(text='编辑中', icon='EDITMODE_HLT')
+        # state
+        if item.error:
+            row.label(text='音频错误', icon='ERROR')
         else:
-            text = ''
-            if item.ctrl: text += 'Ctrl+'
-            if item.alt: text += 'Alt+'
-            if item.shift: text += 'Shift+'
-            text += friendly_names[item.key] if item.key in friendly_names else item.key
-            row.label(text=text)
-
+            # middle msg
+            if pref.sound_list_index == index:
+                row.label(text='编辑中', icon='EDITMODE_HLT')
+            else:
+                text = ''
+                if item.ctrl: text += 'Ctrl+'
+                if item.alt: text += 'Alt+'
+                if item.shift: text += 'Shift+'
+                text += friendly_names[item.key] if item.key in friendly_names else item.key
+                row.label(text=text)
+        # use
         row.prop(item, 'enable', text='')
 
     ### TODO 组属性自定义搜索，组屏蔽等功能
@@ -75,6 +80,8 @@ class SD_OT_SoundListAction(bpy.types.Operator):
             pref.sound_list_index -= 1 if len(pref.sound_list) > 0 else 0
 
         elif self.action in {'UP', 'DOWN'}:
+            neighbor = pref.sound_list_index + (-1 if self.action == 'UP' else 1)
+            pref.sound_list.move(neighbor, pref.sound_list_index)
             pref.sound_list_index = self.move_index(pref.sound_list_index, pref.sound_list)
 
         return {"FINISHED"}

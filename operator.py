@@ -39,6 +39,7 @@ class SD_OT_SetKeymap(bpy.types.Operator):
         self.detect_keyboard(event)
 
         if context.window_manager.sd_listening == 0:
+            context.area.tag_redraw()
             return {"FINISHED"}
 
         return {"PASS_THROUGH"}
@@ -47,7 +48,7 @@ class SD_OT_SetKeymap(bpy.types.Operator):
         if event.value == "PRESS" and event.type not in ignored_keys:
             self.key_input.set_item_keymap(self.item, event)
             bpy.context.window_manager.sd_listening = 0
-
+            bpy.context.area.tag_redraw()
 
 class SD_OT_SoundLoader(bpy.types.Operator):
     """"""
@@ -84,23 +85,28 @@ class SD_OT_SoundLoader(bpy.types.Operator):
 
     def detect_keyboard_and_play(self, event):
         if event.value == "PRESS" and event.type not in ignored_keys:
-            path = self.key_input.get_binds_path(event)
-            self.player = MusicPlayer(path)
-            self.player.play()
+            item = self.key_input.get_binds_item(event)
+
+            self.player = MusicPlayer(item.path)
+            success = self.player.play()
+            if not success: item.error = True
+            item.error = False
 
 
 class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
     bl_idname = 'sd.batch_import'
-    bl_label = 'Batch Import'
+    bl_label = '批量导入'
 
-    files:CollectionProperty(name="File Path", type=bpy.types.OperatorFileListElement)
+    # build-in
+    filename_ext = ''
 
-    directory:StringProperty(subtype='DIR_PATH')
+    files: CollectionProperty(name="File Path", type=bpy.types.OperatorFileListElement)
 
-    filename_ext = ""
+    directory: StringProperty(subtype='DIR_PATH')
 
     def execute(self, context):
         self.add_sound()
+        context.area.tag_redraw()
         return {'FINISHED'}
 
     def add_image(self):
@@ -109,10 +115,9 @@ class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
     def add_sound(self):
         for file_elem in self.files:
             filepath = os.path.join(self.directory, file_elem.name)
-            bpy.ops.sd.sound_list_action(action = 'ADD',
-                                         path = filepath,
-                                         name = file_elem.name,)
-
+            bpy.ops.sd.sound_list_action(action='ADD',
+                                         path=filepath,
+                                         name=file_elem.name, )
 
 
 def register():
