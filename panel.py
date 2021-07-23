@@ -1,18 +1,17 @@
 import bpy
 from bpy.props import EnumProperty, StringProperty, BoolProperty, IntProperty
 
-from .preferences import SD_Preference, get_pref
+from .preferences import get_pref
 from .util import SD_Preview
 
 img_preview = SD_Preview()
-enum_images = img_preview.register()
 
 friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Middle',
                   'WHEELUPMOUSE': "Mouse wheel up", "WHEELDOWNMOUSE": "Mouse wheel down",
                   'ESC': 'Esc', 'RET': 'Enter', 'ONE': '1', 'TWO': '2', 'THREE': '3', 'FOUR': '4',
                   'FIVE': '5', 'SIX': '6', 'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'ZERO': '0',
                   'COMMA': 'Comma', 'PERIOD': 'Period',
-                  'NONE':'无'}
+                  'NONE': '无'}
 
 
 class SD_UL_SoundList(bpy.types.UIList):
@@ -50,6 +49,9 @@ class SD_OT_SoundListAction(bpy.types.Operator):
         ('UP', 'Up', ''),
         ('DOWN', 'Down', ''),
     ])
+    # add action
+    name: StringProperty(default='')
+    path: StringProperty(default='')
 
     def move_index(self, sound_index, sound_list):
         new_index = sound_index + (-1 if self.action == 'UP' else 1)
@@ -62,9 +64,11 @@ class SD_OT_SoundListAction(bpy.types.Operator):
         if self.action == 'ADD':
             item = pref.sound_list.add()
             pref.sound_list_index = len(pref.sound_list) - 1
-            # correct name
-            if item.name in pref.sound_list:
-                item.name += '(1)'
+            # import
+            if self.name != '':
+                item.name = self.name
+            if self.path != '':
+                item.path = self.path
 
         elif self.action == 'REMOVE':
             pref.sound_list.remove(pref.sound_list_index)
@@ -105,10 +109,12 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
             col.separator(factor=0.5)
             box = col.box()
             box.label(text='照片设置', icon='IMAGE_DATA')
-            box.prop(pref,'image_scale',slider=1)
+            box.prop(pref, 'image_scale', slider=1)
 
             box = col.box()
-            box.label(text='语音设置',icon='PLAY_SOUND')
+            row = box.row()
+            row.label(text='语音设置', icon='PLAY_SOUND')
+            row.operator('sd.batch_import', text='批量导入')
             self.draw_settings(pref, box, context)
 
     def draw_settings(self, pref, col, context):
@@ -172,7 +178,7 @@ def draw_top_bar(self, context):
 
 def register():
     bpy.types.Scene.sd_thumbnails = EnumProperty(
-        items=enum_images)
+        items=img_preview.register())
 
     bpy.utils.register_class(SD_OT_SoundListAction)
     bpy.utils.register_class(SD_UL_SoundList)

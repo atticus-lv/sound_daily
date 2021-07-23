@@ -1,5 +1,7 @@
 import bpy
+import os
 
+from bpy_extras.io_utils import ExportHelper
 from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty
 
 from .preferences import get_pref
@@ -86,17 +88,37 @@ class SD_OT_SoundLoader(bpy.types.Operator):
             self.player = MusicPlayer(path)
             self.player.play()
 
-class SD_OT_BatchImport(bpy.types.Operator):
+
+class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
     bl_idname = 'sd.batch_import'
     bl_label = 'Batch Import'
 
+    files:CollectionProperty(name="File Path", type=bpy.types.OperatorFileListElement)
+
+    directory:StringProperty(subtype='DIR_PATH')
+
+    filename_ext = ""
 
     def execute(self, context):
-        return {"FINISHED"}
+        self.add_sound()
+        return {'FINISHED'}
+
+    def add_image(self):
+        pass
+
+    def add_sound(self):
+        for file_elem in self.files:
+            filepath = os.path.join(self.directory, file_elem.name)
+            bpy.ops.sd.sound_list_action(action = 'ADD',
+                                         path = filepath,
+                                         name = file_elem.name,)
+
+
 
 def register():
     bpy.utils.register_class(SD_OT_SetKeymap)
     bpy.utils.register_class(SD_OT_SoundLoader)
+    bpy.utils.register_class(SD_OT_BatchImport)
 
     bpy.types.WindowManager.sd_listening = BoolProperty(default=False)
     bpy.types.WindowManager.sd_loading_sound = BoolProperty(default=False)
@@ -105,6 +127,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(SD_OT_SetKeymap)
     bpy.utils.unregister_class(SD_OT_SoundLoader)
+    bpy.utils.unregister_class(SD_OT_BatchImport)
 
     del bpy.types.WindowManager.sd_listening
     del bpy.types.WindowManager.sd_loading_sound

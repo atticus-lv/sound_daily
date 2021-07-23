@@ -3,7 +3,6 @@ from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProp
 from bpy.types import PropertyGroup
 
 from . import __folder_name__
-from .ui_panel import enum_images
 
 
 def get_pref():
@@ -31,7 +30,6 @@ class SD_Preference(bpy.types.AddonPreferences):
 
     # UI
     image_scale: FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
-
     show_pref: BoolProperty(name='设置', default=False)
 
     def draw(self, context):
