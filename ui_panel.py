@@ -49,19 +49,18 @@ class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
             switch.dir_name = item.name
 
 
-class SD_PT_3DViewPanel(bpy.types.Panel):
+class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = '嘉然之声'
     bl_label = ''
-    bl_options = {'HEADER_LAYOUT_EXPAND'}  # "DRAW_BOX"
+    bl_options = {'HEADER_LAYOUT_EXPAND'}
 
     def draw_header(self, context):
         layout = self.layout
         pref = get_pref()
 
         layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
-        layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', text='', emboss=False)
         layout.separator(factor=0.5)
 
     def draw(self, context):
@@ -85,31 +84,26 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
 
         if not context.window_manager.sd_looping_image:
             row.operator('sd.image_player', text='观想嘉然', icon='PLAY')
-            row.menu("SD_MT_ImageFolderSwitcher", text="", icon='COLLAPSEMENU')
+            # row.menu("SD_MT_ImageFolderSwitcher", text="", icon='COLLAPSEMENU') # 弹出列表选择
         else:
             row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='CANCEL')
 
-        # 设置
-        ##################
 
-        if context.window_manager.sd_show_pref:
-            col.separator(factor=0.5)
+class SD_PT_ImageSettingPanel(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = '嘉然之声'
+    bl_options = {'HEADER_LAYOUT_EXPAND'}
+    bl_label = '观想设置'
+    bl_icon = 'IMAGE_DATA'
 
-            box = col.box()
-            box.label(text='观想设置', icon='IMAGE_DATA')
-            self.draw_image_settings(pref, box, context)
-
-            box = col.box()
-            row = box.split(factor=0.6)
-            row.label(text='聆听设置', icon='PLAY_SOUND')
-            row.operator('sd.batch_import', text='批量导入', emboss=False, icon='FILEBROWSER')
-            self.draw_sound_settings(pref, box, context)
-
-    def draw_image_settings(self, pref, col, context):
+    def draw(self, context):
+        pref = get_pref()
+        col = self.layout.column()
         # Image setting
         row = col.row()
         row.prop(context.scene, 'sd_image_scale', slider=1)
-        row.prop(context.scene, 'sd_image_interval')
+        row.prop(context.scene, 'sd_image_interval', slider=1)
 
         # Image List
         #########################
@@ -131,8 +125,18 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         col3 = col1.column(align=1)
         col3.operator('sd.image_list_action', icon='TRASH', text='').action = 'CLEAR'
 
-    def draw_sound_settings(self, pref, col, context):
 
+class SD_PT_SoundSettingPanel(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = '嘉然之声'
+    bl_options = {'HEADER_LAYOUT_EXPAND'}
+    bl_label = '聆听设置'
+    bl_icon = 'PLAY_SOUND'
+
+    def draw(self, context):
+        pref = get_pref()
+        col = self.layout.column()
         # Sound List
         #########################
         row = col.row()
@@ -193,12 +197,14 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
 
 def register():
     bpy.types.Scene.sd_image_scale = FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
-    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=1, min=0.01, soft_min=0.1, soft_max=3)
+    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=0.5, min=0.025, soft_min=0.05, soft_max=3)
     bpy.types.WindowManager.sd_show_pref = BoolProperty(name='设置', default=False)
 
     bpy.utils.register_class(SD_OT_ImageDirSelector)
     bpy.utils.register_class(SD_MT_ImageFolderSwitcher)
-    bpy.utils.register_class(SD_PT_3DViewPanel)
+    bpy.utils.register_class(SD_PT_MainViewPanel)
+    bpy.utils.register_class(SD_PT_ImageSettingPanel)
+    bpy.utils.register_class(SD_PT_SoundSettingPanel)
 
     # bpy.types.TOPBAR_MT_editor_menus.append(draw_top_bar)
 
@@ -206,6 +212,8 @@ def register():
 def unregister():
     bpy.utils.unregister_class(SD_OT_ImageDirSelector)
     bpy.utils.unregister_class(SD_MT_ImageFolderSwitcher)
-    bpy.utils.unregister_class(SD_PT_3DViewPanel)
+    bpy.utils.unregister_class(SD_PT_MainViewPanel)
+    bpy.utils.unregister_class(SD_PT_ImageSettingPanel)
+    bpy.utils.unregister_class(SD_PT_SoundSettingPanel)
 
     # bpy.types.TOPBAR_MT_editor_menus.remove(draw_top_bar)

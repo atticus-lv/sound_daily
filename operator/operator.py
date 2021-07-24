@@ -66,14 +66,6 @@ class SD_OT_ImagePlayer(bpy.types.Operator):
         pref = get_pref()
         return len(pref.image_dir_list) != 0
 
-    def append_handle(self):
-        self._timer = bpy.context.window_manager.event_timer_add(bpy.context.scene.sd_image_interval,
-                                                                 window=bpy.context.window)
-        bpy.context.window_manager.modal_handler_add(self)
-
-    def remove_handle(self):
-        bpy.context.window_manager.event_timer_remove(self._timer)
-
     def invoke(self, context, event):
         pref = get_pref()
         curr_item = pref.image_dir_list[pref.image_dir_list_index]
@@ -81,7 +73,9 @@ class SD_OT_ImagePlayer(bpy.types.Operator):
                           os.path.isfile(os.path.join(curr_item.path, file_name))]
         # start listening
         context.window_manager.sd_looping_image = 1
-        self.append_handle()
+        self._timer = context.window_manager.event_timer_add(time_step=context.scene.sd_image_interval,
+                                                                 window=context.window)
+        context.window_manager.modal_handler_add(self)
         return {"RUNNING_MODAL"}
 
     def modal(self, context, event):
@@ -90,7 +84,7 @@ class SD_OT_ImagePlayer(bpy.types.Operator):
             context.area.tag_redraw()
 
             if context.window_manager.sd_looping_image == 0:
-                self.remove_handle()
+                context.window_manager.event_timer_remove(self._timer)
                 return {"FINISHED"}
 
         return {"PASS_THROUGH"}
