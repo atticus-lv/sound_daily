@@ -1,7 +1,7 @@
 bl_info = {
     "name"       : "嘉然之声 (Sound Daily)",
     "author"     : "Atticus",
-    "version"    : (0, 1),
+    "version"    : (0, 2),
     "blender"    : (2, 93, 0),
     "location"   : "3D视窗>侧面板",
     "description": "时刻聆听圣嘉然吧，获取属于你的建模纯度",
