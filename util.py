@@ -1,6 +1,7 @@
 import bpy
 import aud
-from .preferences import get_pref
+
+from . import __folder_name__
 
 # some setting keys from https://github.com/jayanam/shortcut_VUr
 ###################################################
@@ -14,6 +15,17 @@ ignored_keys = {'LEFT_SHIFT', 'RIGHT_SHIFT', 'LEFT_ALT',
 clear_events = {'WINDOW_DEACTIVATE', 'TIMER1', 'TIMER_REPORT'}
 
 allowed_mouse_types = {'LEFTMOUSE', 'MIDDLEMOUSE', 'RIGHTMOUSE'}
+
+friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Middle',
+                  'WHEELUPMOUSE': "Mouse wheel up", "WHEELDOWNMOUSE": "Mouse wheel down",
+                  'ESC': 'Esc', 'RET': 'Enter', 'ONE': '1', 'TWO': '2', 'THREE': '3', 'FOUR': '4',
+                  'FIVE': '5', 'SIX': '6', 'SEVEN': '7', 'EIGHT': '8', 'NINE': '9', 'ZERO': '0',
+                  'COMMA': 'Comma', 'PERIOD': 'Period',
+                  'NONE': '无'}
+
+
+def get_pref():
+    return bpy.context.preferences.addons.get(__folder_name__).preferences
 
 
 class KeyController():
@@ -60,12 +72,13 @@ class MusicPlayer():
 import bpy.utils.previews
 import os
 
-img_dir = os.path.join(os.path.dirname(__file__), 'res', 'img')
 extensions = ('.png', '.jpg', '.jpeg')
 
 
 class SD_Preview():
-    def __init__(self):
+    def __init__(self, dirname):
+        self.dir_path = os.path.join(os.path.dirname(__file__), 'res', 'img', dirname)
+
         self.preview_collections = {}
         self.enum_items = []
 
@@ -74,9 +87,9 @@ class SD_Preview():
         self.preview_collections["sd_icon"] = pcoll
 
         # Generate the thumbnails
-        for i, image_name in enumerate(os.listdir(img_dir)):
+        for i, image_name in enumerate(os.listdir(self.dir_path)):
             if image_name.endswith(extensions):
-                filepath = os.path.join(img_dir, image_name)
+                filepath = os.path.join(self.dir_path, image_name)
                 thumb = pcoll.load(image_name, filepath, 'IMAGE')  # name, image_path, type
                 self.enum_items.append((image_name, image_name, "", thumb.icon_id, i))
 
