@@ -3,6 +3,7 @@ from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProp
 from bpy.types import PropertyGroup
 
 import webbrowser
+import os
 
 from . import __folder_name__
 
@@ -10,9 +11,12 @@ from . import __folder_name__
 def get_pref():
     return bpy.context.preferences.addons.get(__folder_name__).preferences
 
+def update_path_name(self,context):
+    if self.bind_name_to_path:
+        self.name = os.path.basename(self.path) if os.path.isfile(self.path) else '文件不存在'
 
 class SoundListItemProperty(PropertyGroup):
-    name: StringProperty(name='起一个好听的名字', default='新的圣经')
+    name: StringProperty(name='起一个好听的名字', default='新的圣经',update=update_path_name)
     path: StringProperty(name='音频路径', description='音频路径，也可以用带有音频的MP4代替', subtype='FILE_PATH')
     enable: BoolProperty(name='启用音频', default=True)
     # event
@@ -21,6 +25,7 @@ class SoundListItemProperty(PropertyGroup):
     shift: BoolProperty(name='Shift', default=False)
     key: StringProperty(default='NONE')
     # state
+    bind_name_to_path: BoolProperty(name = '关联名字到路径',default=True)
     error: BoolProperty(name='文件错误')
 
     ### TODO 组属性以满足嘉心糖出轨需求

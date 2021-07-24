@@ -89,7 +89,8 @@ class SD_OT_SoundLoader(bpy.types.Operator):
     def detect_keyboard_and_play(self, event):
         if event.value == "PRESS" and event.type not in ignored_keys:
             item = self.key_input.get_binds_item(event)
-            if item:
+            if not item: return None
+            if item.ctrl == event.ctrl and item.shift == event.shift and item.alt == event.alt:
                 self.player = MusicPlayer(item.path)
                 self.player.play()
 
@@ -196,7 +197,7 @@ def register():
     bpy.utils.register_class(SD_OT_OpenFolder)
 
     bpy.types.WindowManager.sd_listening = BoolProperty(default=False)
-    bpy.types.WindowManager.sd_loading_sound = BoolProperty(default=False, update=close_settings_panel)
+    bpy.types.WindowManager.sd_loading_sound = BoolProperty(default=False)
     bpy.types.WindowManager.sd_looping_image = BoolProperty(default=False)
 
 

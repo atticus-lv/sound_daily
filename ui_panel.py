@@ -94,7 +94,7 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = '嘉然之声'
     bl_label = ''
-    bl_options = {'HEADER_LAYOUT_EXPAND'} # "DRAW_BOX"
+    bl_options = {'HEADER_LAYOUT_EXPAND'}  # "DRAW_BOX"
 
     def draw_header(self, context):
         layout = self.layout
@@ -135,7 +135,7 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
             box = col.box()
             row = box.split(factor=0.6)
             row.label(text='观想设置', icon='IMAGE_DATA')
-            row.operator('sd.open_folder',text='文件夹',emboss=False,icon='FILEBROWSER')
+            row.operator('sd.open_folder', text='文件夹', emboss=False, icon='FILEBROWSER')
             row = box.row()
             row.prop(context.scene, 'sd_image_scale', slider=1)
             row.prop(context.scene, 'sd_image_interval')
@@ -143,7 +143,7 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
             box = col.box()
             row = box.split(factor=0.6)
             row.label(text='聆听设置', icon='PLAY_SOUND')
-            row.operator('sd.batch_import', text='批量导入',emboss=False,icon='FILEBROWSER')
+            row.operator('sd.batch_import', text='批量导入', emboss=False, icon='FILEBROWSER')
             self.draw_settings(pref, box, context)
 
     def draw_settings(self, pref, col, context):
@@ -172,15 +172,18 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         if len(pref.sound_list) == 0: return None
         item = pref.sound_list[pref.sound_list_index]
 
-        col = col.column(align=1).box()
+        col = col.box().split().column(align=1)
         col.use_property_split = 1
         col.use_property_decorate = 0
         col.label(icon='EDITMODE_HLT', text='编辑项')
 
         # base info
         col.prop(item, 'enable', text='启用音频')
+        col.prop(item, 'bind_name_to_path')
         col.prop(item, 'name', text='名称')
         col.prop(item, 'path', icon='SOUND', text='音频路径')
+
+        col.separator(factor=0.5)
 
         # details
         details = col.box()

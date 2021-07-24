@@ -32,10 +32,11 @@ class KeyController():
 
     def get_binds_item(self, event):
         is_ctrl, is_alt, is_shift, key = self.get_result(event)
+        print(is_ctrl, is_alt, is_shift, key)
         pref = get_pref()
         for item in pref.sound_list:
             if not item.enable: continue
-            if item.ctrl == is_ctrl and item.shift == is_shift and item.alt == is_alt and item.key == key:
+            if item.key == key:
                 return item
 
 
