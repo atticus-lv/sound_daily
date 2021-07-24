@@ -4,7 +4,7 @@ import os
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty
 
-from .preferences import get_pref
+from .preferences import get_pref, SD_Preference
 from .util import KeyController, MusicPlayer
 from .util import ignored_keys, allowed_mouse_types
 
@@ -94,7 +94,6 @@ class SD_OT_SoundLoader(bpy.types.Operator):
             success = self.player.play()
 
 
-
 class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
     """批量导入音频"""
     bl_idname = 'sd.batch_import'
@@ -128,7 +127,6 @@ class SD_OT_ImagePlayer(bpy.types.Operator):
     bl_label = '图片轮替'
 
     name_list = None
-
     _timer = None
 
     def append_handle(self):
@@ -180,9 +178,13 @@ class SD_OT_OpenFolder(bpy.types.Operator):
     bl_label = 'Open Folder'
 
     def execute(self, context):
-        addon_folder = os.path.join(bpy.utils.user_resource('SCRIPTS'), "addons",__folder_name__)
-        os.startfile(os.path.join(addon_folder,'res','img'))
+        addon_folder = os.path.join(bpy.utils.user_resource('SCRIPTS'), "addons", __folder_name__)
+        os.startfile(os.path.join(addon_folder, 'res', 'img'))
         return {"FINISHED"}
+
+
+def close_settings_panel(self, context):
+    context.window_manager.sd_show_pref = False
 
 
 def register():
@@ -193,7 +195,7 @@ def register():
     bpy.utils.register_class(SD_OT_OpenFolder)
 
     bpy.types.WindowManager.sd_listening = BoolProperty(default=False)
-    bpy.types.WindowManager.sd_loading_sound = BoolProperty(default=False)
+    bpy.types.WindowManager.sd_loading_sound = BoolProperty(default=False, update=close_settings_panel)
     bpy.types.WindowManager.sd_looping_image = BoolProperty(default=False)
 
 

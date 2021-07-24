@@ -51,6 +51,7 @@ class SD_OT_SoundListAction(bpy.types.Operator):
         ('REMOVE', 'Remove', ''),
         ('UP', 'Up', ''),
         ('DOWN', 'Down', ''),
+        ('CLEAR', 'Clear All', ''),
     ])
     # add action
     name: StringProperty(default='')
@@ -82,6 +83,9 @@ class SD_OT_SoundListAction(bpy.types.Operator):
             pref.sound_list.move(neighbor, pref.sound_list_index)
             pref.sound_list_index = self.move_index(pref.sound_list_index, pref.sound_list)
 
+        elif self.action == 'CLEAR':
+            pref.sound_list.clear()
+
         return {"FINISHED"}
 
 
@@ -96,7 +100,6 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         layout = self.layout
         pref = get_pref()
 
-        layout.separator(factor=0.5)
         layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
         layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', text='', emboss=False)
         layout.separator(factor=0.5)
@@ -160,6 +163,9 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         col2 = col1.column(align=1)
         col2.operator('sd.sound_list_action', icon='TRIA_UP', text='').action = 'UP'
         col2.operator('sd.sound_list_action', icon='TRIA_DOWN', text='').action = 'DOWN'
+
+        col3 = col1.column(align=1)
+        col3.operator('sd.sound_list_action', icon='TRASH', text='').action = 'CLEAR'
 
         # Current item
         #########################
