@@ -89,9 +89,10 @@ class SD_OT_SoundLoader(bpy.types.Operator):
     def detect_keyboard_and_play(self, event):
         if event.value == "PRESS" and event.type not in ignored_keys:
             item = self.key_input.get_binds_item(event)
+            if item:
+                self.player = MusicPlayer(item.path)
+                self.player.play()
 
-            self.player = MusicPlayer(item.path)
-            success = self.player.play()
 
 
 class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
