@@ -66,20 +66,20 @@ extensions = ('.png', '.jpg', '.jpeg')
 class SD_Preview():
     def __init__(self):
         self.preview_collections = {}
+        self.enum_items = []
 
     def register(self):
         pcoll = bpy.utils.previews.new()
         self.preview_collections["sd_icon"] = pcoll
 
-        enum_items = []
         # Generate the thumbnails
         for i, image_name in enumerate(os.listdir(img_dir)):
             if image_name.endswith(extensions):
                 filepath = os.path.join(img_dir, image_name)
                 thumb = pcoll.load(image_name, filepath, 'IMAGE')  # name, image_path, type
-                enum_items.append((image_name, image_name, "", thumb.icon_id, i))
+                self.enum_items.append((image_name, image_name, "", thumb.icon_id, i))
 
-        return enum_items
+        return self.enum_items
 
     def unregister(self):
         for pcoll in self.preview_collections.values():

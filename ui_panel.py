@@ -1,10 +1,11 @@
 import bpy
-from bpy.props import EnumProperty, StringProperty, BoolProperty, IntProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, IntProperty, FloatProperty
 
 from .preferences import get_pref
 from .util import SD_Preview
 
 img_preview = SD_Preview()
+img_enums = img_preview.register()
 
 friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Middle',
                   'WHEELUPMOUSE': "Mouse wheel up", "WHEELDOWNMOUSE": "Mouse wheel down",
@@ -22,25 +23,22 @@ class SD_UL_SoundList(bpy.types.UIList):
         # name
         row.prop(item, 'name', text='', emboss=False)
 
-        # state
-        if item.error:
-            row.label(text='音频错误', icon='ERROR')
+        # middle msg
+        if pref.sound_list_index == index:
+            row.label(text='编辑中', icon='EDITMODE_HLT')
         else:
-            # middle msg
-            if pref.sound_list_index == index:
-                row.label(text='编辑中', icon='EDITMODE_HLT')
-            else:
-                text = ''
-                if item.ctrl: text += 'Ctrl+'
-                if item.alt: text += 'Alt+'
-                if item.shift: text += 'Shift+'
-                text += friendly_names[item.key] if item.key in friendly_names else item.key
-                row.label(text=text)
+            text = ''
+            if item.ctrl: text += 'Ctrl+'
+            if item.alt: text += 'Alt+'
+            if item.shift: text += 'Shift+'
+            text += friendly_names[item.key] if item.key in friendly_names else item.key
+            row.label(text=text)
         # use
         row.prop(item, 'enable', text='')
 
     ### TODO 组属性自定义搜索，组屏蔽等功能
     ### TODO UI造型：按钮/下拉菜单？
+    ### TODO 错误提示
 
 
 class SD_OT_SoundListAction(bpy.types.Operator):
@@ -91,37 +89,58 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = '嘉然之声'
-    bl_label = '关注嘉心糖|顿顿破大防'
+    bl_label = ''
+    bl_options = {'HEADER_LAYOUT_EXPAND'} # "DRAW_BOX"
+
+    def draw_header(self, context):
+        layout = self.layout
+        pref = get_pref()
+
+        layout.separator(factor=0.5)
+        layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
+        layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', text='', emboss=False)
+        layout.separator(factor=0.5)
 
     def draw(self, context):
         layout = self.layout
         pref = get_pref()
         col = layout.column()
 
-        # 照片位
-        col.template_icon_view(context.scene, "sd_thumbnails", scale=pref.image_scale)
+        # 观想位
+        col.template_icon_view(context.scene, "sd_thumbnails", scale=context.scene.sd_image_scale)
         col.separator(factor=0.5)
 
-        # 聆听位
+        # 启动/停止
         row = col.row()
+        row.scale_y = 1.5
         if context.window_manager.sd_loading_sound:
-            row.prop(context.window_manager, 'sd_loading_sound', text='聆听结束', icon='CANCEL')
+            row.prop(context.window_manager, 'sd_loading_sound', text='停止聆听', icon='CANCEL')
         else:
             row.operator('sd.sound_loader', text='嘉然之声', icon='PLAY')
 
-        # 设置位
-        row.prop(pref, 'show_pref', icon='PREFERENCES', text='')
+        if not context.window_manager.sd_looping_image:
+            row.operator('sd.image_player', text='观想嘉然', icon='PLAY')
+        else:
+            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='CANCEL')
 
-        if pref.show_pref:
+        # 设置
+        ##################
+
+        if context.window_manager.sd_show_pref:
             col.separator(factor=0.5)
-            box = col.box()
-            box.label(text='照片设置', icon='IMAGE_DATA')
-            box.prop(pref, 'image_scale', slider=1)
 
             box = col.box()
+            row = box.split(factor=0.6)
+            row.label(text='观想设置', icon='IMAGE_DATA')
+            row.operator('sd.open_folder',text='文件夹',emboss=False,icon='FILEBROWSER')
             row = box.row()
-            row.label(text='语音设置', icon='PLAY_SOUND')
-            row.operator('sd.batch_import', text='批量导入')
+            row.prop(context.scene, 'sd_image_scale', slider=1)
+            row.prop(context.scene, 'sd_image_interval')
+
+            box = col.box()
+            row = box.split(factor=0.6)
+            row.label(text='聆听设置', icon='PLAY_SOUND')
+            row.operator('sd.batch_import', text='批量导入',emboss=False,icon='FILEBROWSER')
             self.draw_settings(pref, box, context)
 
     def draw_settings(self, pref, col, context):
@@ -148,26 +167,30 @@ class SD_PT_3DViewPanel(bpy.types.Panel):
         item = pref.sound_list[pref.sound_list_index]
 
         col = col.column(align=1).box()
-        col.label(icon='EDITMODE_HLT', text='当前项')
-        # base info
-        row = col.row()
-        row.prop(item, 'name', text='名称')
-        row.prop(item, 'enable', text='启用')
+        col.use_property_split = 1
+        col.use_property_decorate = 0
+        col.label(icon='EDITMODE_HLT', text='编辑项')
 
-        row = col.row(align=1)
-        row.prop(item, 'path', icon='SOUND')
+        # base info
+        col.prop(item, 'enable', text='启用音频')
+        col.prop(item, 'name', text='名称')
+        col.prop(item, 'path', icon='SOUND', text='音频路径')
 
         # details
         details = col.box()
         col = details.column()
+        col.use_property_decorate = True
+        col.use_property_split = False
+
         col.label(text='按键绑定', icon='KEYINGSET')
 
         if context.window_manager.sd_listening:
             col.prop(context.window_manager, 'sd_listening', text='按一个按键，可组合Ctrl/Shift/Alt', toggle=1)
         else:
-            row = col.split(factor=0.5)
+            row = col.split(factor=0.6)
             row.operator('sd.get_event', text=friendly_names[item.key] if item.key in friendly_names else item.key)
             row1 = row.row(align=1)
+            row1.scale_x = 1.25
             row1.prop(item, 'ctrl', toggle=1)
             row1.prop(item, 'alt', toggle=1)
             row1.prop(item, 'shift', toggle=1)
@@ -185,7 +208,11 @@ def draw_top_bar(self, context):
 
 def register():
     bpy.types.Scene.sd_thumbnails = EnumProperty(
-        items=img_preview.register())
+        items=img_enums)
+
+    bpy.types.Scene.sd_image_scale = FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
+    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=1, min=0.01, soft_min=0.1, soft_max=3)
+    bpy.types.WindowManager.sd_show_pref = BoolProperty(name='设置', default=False)
 
     bpy.utils.register_class(SD_OT_SoundListAction)
     bpy.utils.register_class(SD_UL_SoundList)
@@ -195,10 +222,11 @@ def register():
 
 
 def unregister():
+    img_preview.unregister()
+    del bpy.types.Scene.sd_thumbnails
+
     bpy.utils.unregister_class(SD_OT_SoundListAction)
     bpy.utils.unregister_class(SD_UL_SoundList)
     bpy.utils.unregister_class(SD_PT_3DViewPanel)
-
-    del bpy.types.Scene.sd_thumbnails
 
     # bpy.types.TOPBAR_MT_editor_menus.remove(draw_top_bar)

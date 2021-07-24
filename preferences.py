@@ -22,6 +22,7 @@ class SoundListItemProperty(PropertyGroup):
     error:BoolProperty(name='文件错误')
 
     ### TODO 组属性以满足嘉心糖出轨需求
+    ### TODO 错误提示
 
 
 class SD_Preference(bpy.types.AddonPreferences):
@@ -31,8 +32,8 @@ class SD_Preference(bpy.types.AddonPreferences):
     sound_list_index: IntProperty(default=0, min=0)
 
     # UI
-    image_scale: FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
-    show_pref: BoolProperty(name='设置', default=False)
+    edit_title:BoolProperty(name='编辑标题',default=False)
+    title:StringProperty(name='标题',default='关注嘉心糖，顿顿破大防')
 
     def draw(self, context):
         pass
