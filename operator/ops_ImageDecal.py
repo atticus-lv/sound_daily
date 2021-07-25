@@ -10,18 +10,20 @@ from ..util import SD_DrawMessage, viewlayer_fix_291
 
 def draw_move_object_callback_px(self, context):
     msg = SD_DrawMessage(font_id=0)
-    x_align, y_align = SD_DrawMessage.get_region_size(0.475, 0.03)
+    x_align, y_align = SD_DrawMessage.get_region_size(0.475, 0.05)
 
     title = '♥ 图 片 贴 花 ♥'
     tips1 = 'R旋转 S缩放 G移动'
     tips2 = "左键确认(shift包裹)"
+    tips2 = "Ctrl Z 撤销上一个"
 
     offset = 0.5 * msg.get_text_length(title)
     offset1 = 0.2 * msg.get_text_length(title)
 
     msg.draw_title(x=x_align - offset, y=y_align + 150, text=title)
-    msg.draw_info(x=x_align - offset1, y=y_align + 125, text=tips1)
-    msg.draw_info(x=x_align - offset1, y=y_align + 100, text=tips2)
+    msg.draw_info(x=x_align - offset1, y=y_align + 50, text=tips1)
+    msg.draw_info(x=x_align - offset1, y=y_align + 25, text=tips2)
+    msg.draw_info(x=x_align - offset1, y=y_align, text=tips3)
 
 
 class SD_OT_ImageDecal(bpy.types.Operator):
@@ -29,6 +31,9 @@ class SD_OT_ImageDecal(bpy.types.Operator):
     bl_idname = "sd.image_decal"
     bl_label = "布道天下"
     bl_options = {'REGISTER', 'GRAB_CURSOR', 'BLOCKING', 'UNDO'}
+
+    # cache
+    _cache_objs = []
 
     # Image
     image_name: StringProperty()
@@ -186,19 +191,31 @@ class SD_OT_ImageDecal(bpy.types.Operator):
             new_object.rotation_euler = self.object.rotation_euler
 
             if event.shift and self.hit_object:
-                subs = new_object.modifiers.new(type='SUBSURF',name = 'sd_subs')
+                subs = new_object.modifiers.new(type='SUBSURF', name='sd_subs')
                 subs.subdivision_type = 'SIMPLE'
                 subs.levels = 3
                 subs.render_levels = 3
 
-                wrap = new_object.modifiers.new(type='SHRINKWRAP',name ='sd_wrap')
+                wrap = new_object.modifiers.new(type='SHRINKWRAP', name='sd_wrap')
                 wrap.target = self.hit_object
                 wrap.offset = 0.01
 
                 # smooth shading
-                new_object.data.polygons.foreach_set('use_smooth',  [True] * len(new_object.data.polygons))
+                new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))
 
+            self._cache_objs.append(new_object.name)
             self.report({'INFO'}, "贴贴！")
+
+        # undo event
+        elif event.type == 'Z' and event.value == 'PRESS' and event.ctrl is True:
+            if len(self._cache_objs) > 0:
+                name = self._cache_objs[-1]
+                obj = bpy.data.objects.get(name)
+
+                self._cache_objs.pop(-1)
+                if obj: bpy.data.objects.remove(obj)
+
+
 
         # cancel event
         elif event.type in {'ESC', "RIGHTMOUSE"}:
