@@ -34,13 +34,29 @@ class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
 
     directory: StringProperty(subtype='DIR_PATH')
 
+    add_type:EnumProperty(items=[
+        ('IMG','Image Folder',''),
+        ('SOUND','Sound',''),
+    ])
+
+    def draw(self, context):
+        if self.add_type == 'IMG':
+            self.layout.label(text='请选中只包含JPG或者PNG的文件夹',icon ='ERROR')
+        else:
+            self.layout.label(text='请选中音乐文件',icon ='ERROR')
+
+
     def execute(self, context):
         self.add_sound()
         context.area.tag_redraw()
         return {'FINISHED'}
 
     def add_image(self):
-        pass
+        for file_elem in self.files:
+            filepath = os.path.join(self.directory, file_elem.name)
+            bpy.ops.sd.image_list_action(action='ADD',
+                                         path=filepath)
+
 
     def add_sound(self):
         for file_elem in self.files:

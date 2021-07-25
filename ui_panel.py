@@ -61,6 +61,7 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         pref = get_pref()
 
         layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
+        layout.prop(context.window_manager,'sd_show_pref',icon = 'PREFERENCES',emboss=False,text='')
         layout.separator(factor=0.5)
 
     def draw(self, context):
@@ -97,16 +98,24 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
     bl_label = '观想设置'
     bl_icon = 'IMAGE_DATA'
 
+    @classmethod
+    def poll(self, context):
+        return context.window_manager.sd_show_pref
+
     def draw(self, context):
         pref = get_pref()
         col = self.layout.column()
         # Image setting
-        row = col.row()
+        row = col.box().row()
         row.prop(context.scene, 'sd_image_scale', slider=1)
         row.prop(context.scene, 'sd_image_interval', slider=1)
-
+        col.separator(factor=0.5)
         # Image List
         #########################
+        row = col.split(factor=0.75)
+        row.label(text='文件夹列表',icon='FILE_FOLDER')
+        # row.operator('sd.batch_import',).add_type = 'IMG' # TODO 等待修复
+
         row = col.row()
         row.template_list(
             'SD_UL_ImageList', 'Image List',
@@ -134,11 +143,19 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
     bl_label = '聆听设置'
     bl_icon = 'PLAY_SOUND'
 
+    @classmethod
+    def poll(self,context):
+        return context.window_manager.sd_show_pref
+
     def draw(self, context):
         pref = get_pref()
         col = self.layout.column()
         # Sound List
         #########################
+        row = col.split(factor=0.75)
+        row.label(text='文件列表',icon='FILE')
+        row.operator('sd.batch_import').add_type = 'SOUND'
+
         row = col.row()
         row.template_list(
             'SD_UL_SoundList', 'Sound List',

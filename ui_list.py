@@ -9,12 +9,9 @@ class SD_UL_ImageList(bpy.types.UIList):
         row = layout.row(align=1)
 
         # name
-        row.prop(item, 'name', text='', emboss=False)
+        row.prop(item, 'name', text='', emboss=False,icon = 'EDITMODE_HLT' if pref.image_dir_list_index == index else 'DOT' )
         # middle msg
-        if pref.image_dir_list_index == index:
-            row.label(text='使用中', icon='EDITMODE_HLT')
-        else:
-            row.prop(item, 'path', text='')
+        row.prop(item, 'path', text='')
 
 
 

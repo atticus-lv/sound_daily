@@ -48,7 +48,7 @@ class KeyController():
         pref = get_pref()
         for item in pref.sound_list:
             if not item.enable: continue
-            if item.key == key:
+            if item.key == key and item.ctrl == event.ctrl and item.alt == event.alt and item.shift == event.shift:
                 return item
 
 
