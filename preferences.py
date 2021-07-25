@@ -138,6 +138,7 @@ class SD_Preference(bpy.types.AddonPreferences):
                         icon='URL').url_link = 'https://www.bilibili.com/video/BV1vQ4y1Z7C2'
 
 
+
 def register():
     img_preview = bpy.utils.previews.new()
     img_preview.img_dir = ""

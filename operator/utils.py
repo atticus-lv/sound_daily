@@ -4,9 +4,8 @@ import os
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty
 
-from ..preferences import SD_Preference
-from ..util import KeyController, MusicPlayer
-from ..util import ignored_keys, allowed_mouse_types,get_pref
+from ..util import KeyController
+from ..util import ignored_keys, get_pref
 
 from .. import __folder_name__
 
@@ -31,20 +30,17 @@ class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
     filename_ext = ''
 
     files: CollectionProperty(name="File Path", type=bpy.types.OperatorFileListElement)
-
     directory: StringProperty(subtype='DIR_PATH')
-
-    add_type:EnumProperty(items=[
-        ('IMG','Image Folder',''),
-        ('SOUND','Sound',''),
+    add_type: EnumProperty(items=[
+        ('IMG', 'Image Folder', ''),
+        ('SOUND', 'Sound', ''),
     ])
 
     def draw(self, context):
         if self.add_type == 'IMG':
-            self.layout.label(text='请选中只包含JPG或者PNG的文件夹',icon ='ERROR')
+            self.layout.label(text='请选中只包含JPG或者PNG的文件夹', icon='ERROR')
         else:
-            self.layout.label(text='请选中音乐文件',icon ='ERROR')
-
+            self.layout.label(text='请选中音乐文件', icon='ERROR')
 
     def execute(self, context):
         self.add_sound()
@@ -56,7 +52,6 @@ class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
             filepath = os.path.join(self.directory, file_elem.name)
             bpy.ops.sd.image_list_action(action='ADD',
                                          path=filepath)
-
 
     def add_sound(self):
         for file_elem in self.files:
@@ -104,7 +99,7 @@ class SD_OT_SetKeymap(bpy.types.Operator):
     def detect_keyboard(self, event):
         if event.value == "PRESS" and event.type not in ignored_keys:
             self.key_input.set_item_keymap(self.item, event)
-            bpy.context.window_manager.sd_listening = 0 # stop listening when get a key
+            bpy.context.window_manager.sd_listening = 0  # stop listening when get a key
             bpy.context.area.tag_redraw()
 
 
