@@ -15,7 +15,7 @@ def draw_move_object_callback_px(self, context):
     title = '♥ 图 片 贴 花 ♥'
     tips1 = 'R旋转 S缩放 G移动'
     tips2 = "左键确认(shift包裹)"
-    tips2 = "Ctrl Z 撤销上一个"
+    tips3 = "Ctrl Z 撤销上一个"
 
     offset = 0.5 * msg.get_text_length(title)
     offset1 = 0.2 * msg.get_text_length(title)
