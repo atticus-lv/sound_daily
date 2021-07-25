@@ -89,6 +89,11 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         else:
             row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='CANCEL')
 
+        # 贴花
+        decal = col.operator('sd.image_decal')
+        curr_dir_item = pref.image_dir_list[pref.image_dir_list_index]
+        decal.image_name = curr_dir_item.thumbnails
+        decal.image_dir_path = curr_dir_item.path
 
 class SD_PT_ImageSettingPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'

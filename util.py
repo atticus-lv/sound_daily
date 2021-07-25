@@ -25,8 +25,15 @@ friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Mi
 
 
 def get_pref():
+    """get preferences of this plugin"""
     return bpy.context.preferences.addons.get(__folder_name__).preferences
 
+def viewlayer_fix_291(self, context):
+    """ray_cast view layer version fix"""
+    return context.view_layer.depsgraph if bpy.app.version >= (2, 91, 0) else context.view_layer
+
+# Core Method
+#######################################
 
 class KeyController():
     def get_event_type(self, event):
@@ -68,7 +75,40 @@ class MusicPlayer():
             return None
 
 
+# Drawback
+########################
 # code from another plugin of mine "https://atticus-lv.github.io/RenderStackNode/#/"
+
+import bgl
+import blf
+
+
+class SD_DrawMessage():
+    def __init__(self, font_id):
+        self.font_id = font_id
+        blf.color(font_id, 255, 255, 255, 0.75)
+
+    def get_text_length(self, text, height=False):
+        return blf.dimensions(self.font_id, text)[0] if not height else blf.dimensions(self.font_id, text)[1]
+
+    def draw_title(self, size=175, x=0, y=0, text="test title"):
+        blf.size(self.font_id, 12, size)
+        blf.position(self.font_id, x, y, 0)
+        blf.draw(self.font_id, text)
+
+    def draw_info(self, size=100, x=0, y=0, text="test info"):
+        blf.size(self.font_id, 12, size)
+        blf.position(self.font_id, x, y, 0)
+        blf.draw(self.font_id, text)
+
+    @staticmethod
+    def get_region_size(percentage_x=1, percentage_y=1):
+        region = bpy.context.region
+        return percentage_x * region.width, percentage_y * region.height
+
+
+#
+#
 import bpy.utils.previews
 import os
 
