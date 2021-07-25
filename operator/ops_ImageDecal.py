@@ -83,10 +83,9 @@ class SD_OT_ImageDecal(bpy.types.Operator):
         self.object.empty_display_size = 1  # restore size
         self.object.scale = (image_size, image_size, image_size)
 
-        # rotate
+        # mouse
         self.mouse_pos = [0, 0]
-        self.mouseDX = event.mouse_x
-        self.mouseDY = event.mouse_y
+        self.restore_mouse(event)
 
         self.append_handle(context)
 
@@ -104,7 +103,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
             return {'PASS_THROUGH'}
 
         # core event
-        elif event.type in {"MOUSEMOVE", "R", "S","G"}:
+        elif event.type in {"MOUSEMOVE", "R", "S", "G"}:
 
             # set rotate mode
             ##########################
@@ -142,7 +141,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
                 multiplier = 0.01 if event.shift else 0.2  # accurate rotate
 
                 if self.rotate_mode:
-                    self.object.rotation_euler.rotate_axis("Z", math.radians(self.mouseDX * multiplier))
+                    self.object.rotation_euler.rotate_axis("Z", math.radians(math.radians(self.mouseDX * multiplier)))
                 if self.scale_mode:
                     offset = self.mouseDX * multiplier * -0.1
                     scale = self.object.scale
@@ -169,15 +168,20 @@ class SD_OT_ImageDecal(bpy.types.Operator):
                     self.world_loc = (target_obj.matrix_world @ loc) + self.rc_target_normal * 0.05
 
                 self.object.location = self.world_loc
-                self.object.rotation_euler = self.up.rotation_difference(self.rc_target_normal).to_euler()
+                self.object.rotation_euler = self.up.rotation_difference(self.rc_target_normal).to_euler() # rotate normal
 
-        # TODO 连续贴花选项
-        # elif event.type in {"C"} and event.value == "PRESS":
-        #     new_data = self.object.data.copy()
-        #     new_object = bpy.data.objects.new(self.object.name, new_data)
-        #     new_object.location = self.object.location
-        #     new_object.rotation_euler = self.object.rotation_euler
-        #     bpy.context.collection.objects.link(new_object)
+        elif event.type == 'LEFTMOUSE' and event.value == "PRESS":
+            self.rotate_mode = False
+            self.scale_mode = False
+
+            new_data = self.image_mesh.data.copy()
+            new_object = bpy.data.objects.new(self.image_mesh.name, new_data)
+            context.collection.objects.link(new_object)
+
+            new_object.scale = self.object.scale
+            new_object.location = self.object.location
+            new_object.rotation_euler = self.object.rotation_euler
+            self.report({'INFO'}, "贴贴！")
 
         # cancel event
         elif event.type in {'ESC', "RIGHTMOUSE"}:
@@ -187,24 +191,6 @@ class SD_OT_ImageDecal(bpy.types.Operator):
             context.window.cursor_modal_restore()
             self.report({'INFO'}, "嘉心糖屁用没有！")
             return {'CANCELLED'}
-
-        # confirm event
-        elif event.type == 'LEFTMOUSE' and event.value == 'PRESS':
-            # transfer empty to mesh
-            self.image_mesh.hide_viewport = 0
-            self.image_mesh.rotation_euler = self.object.rotation_euler
-            self.image_mesh.scale = self.object.scale
-            bpy.data.objects.remove(self.object)
-
-            context.view_layer.objects.active = self.image_mesh
-            self.image_mesh.select_set(True)
-            # set location
-            self.image_mesh.location = self.world_loc
-            # remove
-            context.window.cursor_modal_restore()
-            bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
-            self.report({'INFO'}, "贴贴！")
-            return {'FINISHED'}
 
         return {'RUNNING_MODAL'}
 
