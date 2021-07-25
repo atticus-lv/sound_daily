@@ -104,7 +104,7 @@ class SD_OT_SetKeymap(bpy.types.Operator):
     def detect_keyboard(self, event):
         if event.value == "PRESS" and event.type not in ignored_keys:
             self.key_input.set_item_keymap(self.item, event)
-            bpy.context.window_manager.sd_listening = 0
+            bpy.context.window_manager.sd_listening = 0 # stop listening when get a key
             bpy.context.area.tag_redraw()
 
 

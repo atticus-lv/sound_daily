@@ -18,8 +18,9 @@ def update_path_name(self, context):
 
 
 class SoundListItemProperty(PropertyGroup):
+    # base
     name: StringProperty(name='起一个好听的名字', default='新的圣经')
-    path: StringProperty(name='音频路径', description='音频路径，也可以用带有音频的MP4代替', subtype='FILE_PATH',update=update_path_name)
+    path: StringProperty(name='音频路径', description='音频路径，也可以用带有音频的MP4代替', subtype='FILE_PATH', update=update_path_name)
     enable: BoolProperty(name='启用音频', default=True)
     # event
     alt: BoolProperty(name='Alt', default=False)
@@ -37,7 +38,7 @@ class SoundListItemProperty(PropertyGroup):
 # Image items
 ####################
 
-__tempPreview__ = {}
+__tempPreview__ = {}  # store in global, delete in unregister
 
 
 def clear_preview_cache():
@@ -57,6 +58,7 @@ def enum_thumbnails_from_dir_items(self, context):
     except(Exception):
         directory = ""
 
+    # store
     image_preview = __tempPreview__["sd_thumbnails"]
 
     if directory == image_preview.img_dir:
@@ -73,10 +75,10 @@ def enum_thumbnails_from_dir_items(self, context):
             filepath = os.path.join(directory, name)
             icon = image_preview.get(name)
             if not icon:
-                thunmnail = image_preview.load(name, filepath, 'IMAGE')
+                thumbnail = image_preview.load(name, filepath, 'IMAGE')
             else:
-                thunmnail = image_preview[name]
-            enum_items.append((name, name, "", thunmnail.icon_id, i))
+                thumbnail = image_preview[name]
+            enum_items.append((name, name, "", thumbnail.icon_id, i))  # item: sign,display,description,icon,index
 
     image_preview.img = enum_items
     image_preview.img_dir = directory
@@ -86,12 +88,13 @@ def enum_thumbnails_from_dir_items(self, context):
 
 def update_path_name2(self, context):
     full_dir_name = os.path.dirname(self.path) if os.path.isdir(self.path) else None
-    if full_dir_name is None:return None
-    self.name = full_dir_name.replace('\\','/').split('/')[-1]
+    if full_dir_name is None: return None
+    self.name = full_dir_name.replace('\\', '/').split('/')[-1]
+
 
 class ImageDirListItemProperty(PropertyGroup):
     name: StringProperty(name='分类名字')
-    path: StringProperty(name='图片路径', description='图片文件夹路径', subtype='DIR_PATH',update=update_path_name2)
+    path: StringProperty(name='图片路径', description='图片文件夹路径', subtype='DIR_PATH', update=update_path_name2)
     thumbnails: EnumProperty(name='子文件夹', items=enum_thumbnails_from_dir_items)
 
 
@@ -113,7 +116,6 @@ class SD_Preference(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     # UI
-    edit_title: BoolProperty(name='编辑标题', default=False)
     title: StringProperty(name='标题', default='关注嘉心糖，顿顿破大防')
 
     # sound
@@ -126,18 +128,14 @@ class SD_Preference(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
-
         col = layout.column()
 
-        layout.operator('sd.url_link', text='关注嘉然',
+        col.operator('sd.url_link', text='关注嘉然',
                         icon='URL').url_link = 'https://space.bilibili.com/672328094'
-        layout.operator('sd.url_link', text='猫中毒',
+        col.operator('sd.url_link', text='猫中毒',
                         icon='URL').url_link = 'https://www.bilibili.com/video/BV1FX4y1g7u8'
-        layout.operator('sd.url_link', text='超级敏感',
+        col.operator('sd.url_link', text='超级敏感',
                         icon='URL').url_link = 'https://www.bilibili.com/video/BV1vQ4y1Z7C2'
-        # layout.label(text='')
-        # layout.operator('sd.url_link', text='和嘉然比划',
-        #                 icon='URL').url_link = 'https://www.bilibili.com/video/BV1kq4y1W7hW'
 
 
 def register():
