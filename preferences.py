@@ -1,6 +1,6 @@
 import bpy
 import os
-from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty
+from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty,PointerProperty
 from bpy.types import PropertyGroup
 
 import webbrowser
@@ -91,11 +91,40 @@ def update_path_name2(self, context):
     if full_dir_name is None: return None
     self.name = full_dir_name.replace('\\', '/').split('/')[-1]
 
+def update_image(self, context):
+    # update or not
+    if not context.scene.sd_link_image_to_data_path: return None
+
+    # find node
+    if context.scene.sd_link_image_type == 'WORLD':
+        if context.scene.sd_link_world is None: return None
+        nt = context.scene.sd_link_world.node_tree
+    else:
+        if context.scene.sd_link_material is None: return None
+        nt = context.scene.sd_link_material.node_tree
+
+    node = nt.nodes.get(context.scene.sd_link_image_node)
+    if not node: return None
+    if not hasattr(node, 'image'): return None
+
+    # get image
+    pref = get_pref()
+    item = pref.image_dir_list[pref.image_dir_list_index] if len(pref.image_dir_list) != 0 else None
+
+    if not item: return None
+
+    name = item.thumbnails
+    dir_path = item.path
+    image = bpy.data.images.get(name)
+
+    if not image:image = bpy.data.images.load(os.path.join(dir_path, name))
+    # set image
+    node.image = image
 
 class ImageDirListItemProperty(PropertyGroup):
     name: StringProperty(name='分类名字')
     path: StringProperty(name='图片路径', description='图片文件夹路径', subtype='DIR_PATH', update=update_path_name2)
-    thumbnails: EnumProperty(name='子文件夹', items=enum_thumbnails_from_dir_items)
+    thumbnails: EnumProperty(name='子文件夹', items=enum_thumbnails_from_dir_items,update=update_image)
 
 
 class SD_OT_UrlLink(bpy.types.Operator):
@@ -123,6 +152,9 @@ class SD_Preference(bpy.types.AddonPreferences):
     sound_list_index: IntProperty(default=0, min=0)
 
     # image
+    use_image_name:BoolProperty(name='显示名字',default=False)
+    rand_image:BoolProperty(name='随机下一张',default=False)
+
     image_dir_list: CollectionProperty(type=ImageDirListItemProperty)
     image_dir_list_index: IntProperty(default=0, min=0, name='激活项')
 
@@ -137,13 +169,28 @@ class SD_Preference(bpy.types.AddonPreferences):
         col.operator('sd.url_link', text='超级敏感',
                         icon='URL').url_link = 'https://www.bilibili.com/video/BV1vQ4y1Z7C2'
 
+def bind_image_props():
+    bpy.types.Scene.sd_link_image_to_data_path = BoolProperty(default=False)
+    bpy.types.Scene.sd_link_image_type = EnumProperty(name='关联类型', items=[('WORLD', '世界', ''),
+                                                                          ('MAT', '材质', '')])
+    bpy.types.Scene.sd_link_world = PointerProperty(name='世界', type=bpy.types.World)
+    bpy.types.Scene.sd_link_material = PointerProperty(name='材质', type=bpy.types.Material)
+    bpy.types.Scene.sd_link_image_node = StringProperty(name='节点')
 
+def del_bind_image_props():
+    del bpy.types.Scene.sd_link_image_to_data_path
+    del bpy.types.Scene.sd_link_image_type
+    del bpy.types.Scene.sd_link_world
+    del bpy.types.Scene.sd_link_material
+    del bpy.types.Scene.sd_link_image_node
 
 def register():
     img_preview = bpy.utils.previews.new()
     img_preview.img_dir = ""
     img_preview.img = ()
     __tempPreview__["sd_thumbnails"] = img_preview
+
+    bind_image_props()
 
     bpy.utils.register_class(SoundListItemProperty)
     bpy.utils.register_class(ImageDirListItemProperty)
@@ -158,3 +205,5 @@ def unregister():
     bpy.utils.unregister_class(SD_Preference)
 
     clear_preview_cache()
+
+    del_bind_image_props()

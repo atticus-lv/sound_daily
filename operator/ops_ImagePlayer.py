@@ -1,5 +1,6 @@
 import bpy
 import os
+import random
 
 from ..util import get_pref
 
@@ -59,7 +60,11 @@ class SD_OT_ImagePlayer(bpy.types.Operator):
             return None
 
         # loop index and set image
-        curr_item.thumbnails = self.name_list[curr_index + 1] if curr_index < len(self.name_list) - 1 else self.name_list[0]
+        if not pref.rand_image:
+            curr_item.thumbnails = self.name_list[curr_index + 1] if curr_index < len(self.name_list) - 1 else self.name_list[0]
+        else:
+            i = random.randint(0,len(self.name_list) - 1)
+            curr_item.thumbnails = self.name_list[i]
         # redraw for smooth performance
         context.area.tag_redraw()
 

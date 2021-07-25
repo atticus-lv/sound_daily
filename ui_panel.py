@@ -51,6 +51,7 @@ class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
         layout.separator()
         layout.label(text='选择当前图包')
 
+
 class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -73,16 +74,22 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         # 照片
         item = pref.image_dir_list[pref.image_dir_list_index] if len(pref.image_dir_list) != 0 else None
         if item:
-            layout.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale)
+            col = layout.column(align=1)
+            row = col.split(factor=0.75)
+            # 显示名字
+            l = row.label(text=item.thumbnails) if pref.use_image_name else row.separator()
+            # 弹出列表选择
+            row.menu("SD_MT_ImageFolderSwitcher", text=item.name if item else '无')
+            col.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale,
+                                   show_labels=pref.use_image_name)
 
         col = layout.column()
         col.scale_y = 1.25
-        row = col.split(factor=0.75)
         if not context.window_manager.sd_looping_image:
-            row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
-            row.menu("SD_MT_ImageFolderSwitcher", text=item.name if item else '无')  # 弹出列表选择
+            col.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
+
         else:
-            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
+            col.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
 
         col.separator(factor=0.5)
 
@@ -115,15 +122,47 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
     def draw(self, context):
         pref = get_pref()
         col = self.layout.column()
+
         # Image setting
+        ########################
         box = col.box()
-        box.label(text='面板预览', icon='IMAGE_BACKGROUND')
+        box.label(text='预览', icon='IMAGE_BACKGROUND')
         col1 = box.column(align=1)
         col1.use_property_split = 1
         col1.use_property_decorate = 0
+        col1.prop(pref, 'use_image_name')
         col1.prop(context.scene, 'sd_image_scale', slider=1)
+
+        box = col.box()
+        box.label(text='播放', icon='PROP_ON')
+        col1 = box.column(align=1)
+        col1.use_property_split = 1
+        col1.use_property_decorate = 0
+        col1.prop(pref, 'rand_image')
         col1.prop(context.scene, 'sd_image_interval', slider=1)
-        col.separator(factor=0.5)
+
+        box = col.box()
+        row1 = box.row(align=1)
+        row1.prop(context.scene, 'sd_link_image_to_data_path', text='')
+        row1.label(text='关联', icon='LINKED')
+        col1 = box.column(align=1)
+        col1.use_property_split = 1
+        col1.use_property_decorate = 0
+        if context.scene.sd_link_image_to_data_path:
+            col1.prop(context.scene, 'sd_link_image_type')
+
+            nodes= None
+            if context.scene.sd_link_image_type == 'WORLD':
+                col1.prop(context.scene, 'sd_link_world')
+                if context.scene.sd_link_world is not None:
+                    nt = context.scene.sd_link_world.node_tree
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt,'nodes')
+
+            else:
+                col1.prop(context.scene, 'sd_link_material')
+                if context.scene.sd_link_material is not None:
+                    nt = context.scene.sd_link_material.node_tree
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt,'nodes')
 
         # Image List
         #########################
@@ -138,6 +177,7 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
             pref, 'image_dir_list',
             pref, 'image_dir_list_index')
 
+        # Actions
         col1 = row.column()
         col2 = col1.column(align=1)
         col2.operator('sd.image_list_action', icon='ADD', text='').action = 'ADD'
