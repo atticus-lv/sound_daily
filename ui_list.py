@@ -1,26 +1,26 @@
 import bpy
 from bpy.props import EnumProperty, StringProperty, BoolProperty, IntProperty, FloatProperty
 
-from .util import get_pref,friendly_names
+from .util import get_pref, friendly_names
+
 
 class SD_UL_ImageList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         pref = get_pref()
-        row = layout.row(align=1)
+        row = layout.split(factor=0.3, align=1)
 
         # name
-        row.prop(item, 'name', text='', emboss=False,icon = 'EDITMODE_HLT' if pref.image_dir_list_index == index else 'DOT' )
+        row.prop(item, 'name', text='', emboss=False,
+                 icon='EDITMODE_HLT' if pref.image_dir_list_index == index else 'DOT')
         # middle msg
-        row.prop(item, 'path', text='')
-
-
+        row.prop(item, 'path', text='', emboss=False, )
 
 
 class SD_OT_ImageListAction(bpy.types.Operator):
     """操作选中项"""
     bl_idname = 'sd.image_list_action'
-    bl_label = '添加'
-    bl_options = {"REGISTER","UNDO"}
+    bl_label = '添嘉/删除/上移/下移/清空'
+    bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=[
         ('ADD', 'Add', ''),
@@ -94,9 +94,8 @@ class SD_UL_SoundList(bpy.types.UIList):
 class SD_OT_SoundListAction(bpy.types.Operator):
     """操作选中项"""
     bl_idname = 'sd.sound_list_action'
-    bl_label = '添加'
-    bl_options = {"REGISTER","UNDO"}
-
+    bl_label = '添嘉/删除/上移/下移/清空'
+    bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=[
         ('ADD', 'Add', ''),

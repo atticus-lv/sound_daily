@@ -33,7 +33,7 @@ class SD_OT_ImageDirSelector(bpy.types.Operator):
 
 
 class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
-    bl_label = "Select a camera to enter"
+    bl_label = "选择当前图包"
     bl_idname = "SD_MT_ImageFolderSwitcher"
 
     @classmethod
@@ -41,13 +41,15 @@ class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
         return len(get_pref().image_dir_list) > 0
 
     def draw(self, context):
-        layout = self.layout
         pref = get_pref()
+        layout = self.layout
 
         for item in pref.image_dir_list:
             switch = layout.operator("sd.image_dir_selector", text=item.name)
             switch.dir_name = item.name
 
+        layout.separator()
+        layout.label(text='选择当前图包')
 
 class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -61,46 +63,49 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         pref = get_pref()
 
         layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
-        layout.prop(context.window_manager,'sd_show_pref',icon = 'PREFERENCES',emboss=False,text='')
+        layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
         layout.separator(factor=0.5)
 
     def draw(self, context):
         layout = self.layout
         pref = get_pref()
-        col = layout.column()
 
-        # 观想位
+        # 照片
         item = pref.image_dir_list[pref.image_dir_list_index] if len(pref.image_dir_list) != 0 else None
         if item:
-            col.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale)
-            col.separator(factor=0.5)
+            layout.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale)
 
-        # 启动/停止
+        col = layout.column()
+        col.scale_y = 1.25
+        row = col.split(factor=0.75)
+        if not context.window_manager.sd_looping_image:
+            row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
+            row.menu("SD_MT_ImageFolderSwitcher", text=item.name if item else '无')  # 弹出列表选择
+        else:
+            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
+
+        col.separator(factor=0.5)
+
+        # 声音
         row = col.row()
-        row.scale_y = 1.5
         if context.window_manager.sd_loading_sound:
             row.prop(context.window_manager, 'sd_loading_sound', text='停止聆听', icon='CANCEL')
         else:
-            row.operator('sd.sound_loader', text='嘉然之声', icon='PLAY')
-
-        if not context.window_manager.sd_looping_image:
-            row.operator('sd.image_player', text='观想嘉然', icon='PLAY')
-            # row.menu("SD_MT_ImageFolderSwitcher", text="", icon='COLLAPSEMENU') # 弹出列表选择
-        else:
-            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='CANCEL')
+            row.operator('sd.sound_loader', text='嘉然之声', icon='SOUND')
 
         # 贴花
-        decal = col.operator('sd.image_decal')
+        decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道天下')
         curr_dir_item = pref.image_dir_list[pref.image_dir_list_index]
         decal.image_name = curr_dir_item.thumbnails
         decal.image_dir_path = curr_dir_item.path
+
 
 class SD_PT_ImageSettingPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = '嘉然之声'
     bl_options = {'HEADER_LAYOUT_EXPAND'}
-    bl_label = '观想设置'
+    bl_label = '图片设置'
     bl_icon = 'IMAGE_DATA'
 
     @classmethod
@@ -111,17 +116,23 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
         pref = get_pref()
         col = self.layout.column()
         # Image setting
-        row = col.box().row()
-        row.prop(context.scene, 'sd_image_scale', slider=1)
-        row.prop(context.scene, 'sd_image_interval', slider=1)
+        box = col.box()
+        box.label(text='面板预览', icon='IMAGE_BACKGROUND')
+        col1 = box.column(align=1)
+        col1.use_property_split = 1
+        col1.use_property_decorate = 0
+        col1.prop(context.scene, 'sd_image_scale', slider=1)
+        col1.prop(context.scene, 'sd_image_interval', slider=1)
         col.separator(factor=0.5)
+
         # Image List
         #########################
-        row = col.split(factor=0.75)
-        row.label(text='文件夹列表',icon='FILE_FOLDER')
+        box = col.box()
+        row = box.split(factor=0.75)
+        row.label(text='图包路径', icon='FILE_FOLDER')
         # row.operator('sd.batch_import',).add_type = 'IMG' # TODO 等待修复
 
-        row = col.row()
+        row = box.row()
         row.template_list(
             'SD_UL_ImageList', 'Image List',
             pref, 'image_dir_list',
@@ -145,11 +156,11 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = '嘉然之声'
     bl_options = {'HEADER_LAYOUT_EXPAND'}
-    bl_label = '聆听设置'
+    bl_label = '声音设置'
     bl_icon = 'PLAY_SOUND'
 
     @classmethod
-    def poll(self,context):
+    def poll(self, context):
         return context.window_manager.sd_show_pref
 
     def draw(self, context):
@@ -158,7 +169,7 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
         # Sound List
         #########################
         row = col.split(factor=0.75)
-        row.label(text='文件列表',icon='FILE')
+        row.label(text='文件列表', icon='FILE')
         row.operator('sd.batch_import').add_type = 'SOUND'
 
         row = col.row()
@@ -218,8 +229,8 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
 
 
 def register():
-    bpy.types.Scene.sd_image_scale = FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
-    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=0.5, min=0.01, soft_min=0.01, soft_max=3)
+    bpy.types.Scene.sd_image_scale = FloatProperty(name='图像缩放', default=8, min=3, soft_min=5, soft_max=11)
+    bpy.types.Scene.sd_image_interval = FloatProperty(name='播放间隔', default=0.5, min=0.01, soft_min=0.01, soft_max=3)
     bpy.types.WindowManager.sd_show_pref = BoolProperty(name='设置', default=False)
 
     bpy.utils.register_class(SD_OT_ImageDirSelector)
