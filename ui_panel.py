@@ -214,7 +214,7 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
 
 def register():
     bpy.types.Scene.sd_image_scale = FloatProperty(name='照片缩放', default=8, min=3, soft_min=5, soft_max=11)
-    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=0.5, min=0.025, soft_min=0.05, soft_max=3)
+    bpy.types.Scene.sd_image_interval = FloatProperty(name='时间间隔', default=0.5, min=0.01, soft_min=0.01, soft_max=3)
     bpy.types.WindowManager.sd_show_pref = BoolProperty(name='设置', default=False)
 
     bpy.utils.register_class(SD_OT_ImageDirSelector)
