@@ -10,14 +10,14 @@ from ..util import SD_DrawMessage, viewlayer_fix_291
 
 def draw_move_object_callback_px(self, context):
     msg = SD_DrawMessage(font_id=0)
-    x_align, y_align = SD_DrawMessage.get_region_size(0.5, 0.03)
+    x_align, y_align = SD_DrawMessage.get_region_size(0.475, 0.03)
 
     title = '♥ 图 片 贴 花 ♥'
     tips1 = 'R旋转 S缩放 G移动'
     tips2 = "左键确认 | 右键取消"
 
     offset = 0.5 * msg.get_text_length(title)
-    offset1 = 0.5 * msg.get_text_length(tips1)
+    offset1 = 0.2 * msg.get_text_length(title)
 
     msg.draw_title(x=x_align - offset, y=y_align + 150, text=title)
     msg.draw_info(x=x_align - offset1, y=y_align + 125, text=tips1)
@@ -27,7 +27,7 @@ def draw_move_object_callback_px(self, context):
 class SD_OT_ImageDecal(bpy.types.Operator):
     """Move Object"""
     bl_idname = "sd.image_decal"
-    bl_label = "贴 花"
+    bl_label = "布道天下"
     bl_options = {'REGISTER', 'GRAB_CURSOR', 'BLOCKING', 'UNDO'}
 
     # Image
@@ -141,7 +141,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
                 multiplier = 0.01 if event.shift else 0.2  # accurate rotate
 
                 if self.rotate_mode:
-                    self.object.rotation_euler.rotate_axis("Z", math.radians(math.radians(self.mouseDX * multiplier)))
+                    self.object.rotation_euler.rotate_axis("Z", math.radians(self.mouseDX * multiplier))
                 if self.scale_mode:
                     offset = self.mouseDX * multiplier * -0.1
                     scale = self.object.scale
@@ -168,7 +168,8 @@ class SD_OT_ImageDecal(bpy.types.Operator):
                     self.world_loc = (target_obj.matrix_world @ loc) + self.rc_target_normal * 0.05
 
                 self.object.location = self.world_loc
-                self.object.rotation_euler = self.up.rotation_difference(self.rc_target_normal).to_euler() # rotate normal
+                self.object.rotation_euler = self.up.rotation_difference(
+                    self.rc_target_normal).to_euler()  # rotate normal
 
         elif event.type == 'LEFTMOUSE' and event.value == "PRESS":
             self.rotate_mode = False
