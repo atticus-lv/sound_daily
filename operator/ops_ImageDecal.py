@@ -14,7 +14,7 @@ def draw_move_object_callback_px(self, context):
 
     title = '♥ 图 片 贴 花 ♥'
     tips1 = 'R旋转 S缩放 G移动'
-    tips2 = "左键确认 | 右键取消"
+    tips2 = "左键确认(shift包裹)"
 
     offset = 0.5 * msg.get_text_length(title)
     offset1 = 0.2 * msg.get_text_length(title)
@@ -80,8 +80,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
         # use empty object to prevent rayCast ans shading problem
         bpy.ops.object.load_reference_image(filepath=os.path.join(self.image_dir_path, self.image_name))
         self.object = context.object
-        self.object.empty_display_size = 1  # restore size
-        self.object.scale = (image_size, image_size, image_size)
+        self.object.empty_display_size = image_size  # restore size
 
         # mouse
         self.mouse_pos = [0, 0]
@@ -154,6 +153,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
                 result, target_obj = self.ray_cast(context, event)
 
                 if result:
+                    self.hit_object = target_obj
                     world_mat_inv = target_obj.matrix_world.inverted()
                     # Calculates the ray direction in the target space
                     rc_origin = world_mat_inv @ self.view_point
@@ -165,7 +165,9 @@ class SD_OT_ImageDecal(bpy.types.Operator):
 
                     norm.rotate(target_obj.matrix_world.to_euler('XYZ'))
                     self.rc_target_normal = norm.normalized()
-                    self.world_loc = (target_obj.matrix_world @ loc) + self.rc_target_normal * 0.05
+                    self.world_loc = (target_obj.matrix_world @ loc) + self.rc_target_normal * 0.01
+                else:
+                    self.hit_object = None
 
                 self.object.location = self.world_loc
                 self.object.rotation_euler = self.up.rotation_difference(
@@ -182,11 +184,26 @@ class SD_OT_ImageDecal(bpy.types.Operator):
             new_object.scale = self.object.scale
             new_object.location = self.object.location
             new_object.rotation_euler = self.object.rotation_euler
+
+            if event.shift and self.hit_object:
+                subs = new_object.modifiers.new(type='SUBSURF',name = 'sd_subs')
+                subs.subdivision_type = 'SIMPLE'
+                subs.levels = 3
+                subs.render_levels = 3
+
+                wrap = new_object.modifiers.new(type='SHRINKWRAP',name ='sd_wrap')
+                wrap.target = self.hit_object
+                wrap.offset = 0.01
+
+                # smooth shading
+                new_object.data.polygons.foreach_set('use_smooth',  [True] * len(new_object.data.polygons))
+
             self.report({'INFO'}, "贴贴！")
 
         # cancel event
         elif event.type in {'ESC', "RIGHTMOUSE"}:
             bpy.data.objects.remove(self.object)
+            bpy.data.objects.remove(self.image_mesh)
             # remove draw_handler_add
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             context.window.cursor_modal_restore()

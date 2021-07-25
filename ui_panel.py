@@ -151,18 +151,17 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
         if context.scene.sd_link_image_to_data_path:
             col1.prop(context.scene, 'sd_link_image_type')
 
-            nodes= None
             if context.scene.sd_link_image_type == 'WORLD':
                 col1.prop(context.scene, 'sd_link_world')
                 if context.scene.sd_link_world is not None:
                     nt = context.scene.sd_link_world.node_tree
-                    col1.prop_search(context.scene, 'sd_link_image_node', nt,'nodes')
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
 
             else:
                 col1.prop(context.scene, 'sd_link_material')
-                if context.scene.sd_link_material is not None:
+                if context.scene.sd_link_material is not None and not context.scene.sd_link_material.is_grease_pencil :
                     nt = context.scene.sd_link_material.node_tree
-                    col1.prop_search(context.scene, 'sd_link_image_node', nt,'nodes')
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
 
         # Image List
         #########################
