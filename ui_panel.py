@@ -51,6 +51,7 @@ class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
         layout.separator()
         layout.label(text='选择当前图包')
 
+
 class SD_PT_UrlLinkPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -58,21 +59,14 @@ class SD_PT_UrlLinkPanel(bpy.types.Panel):
     bl_label = ''
     bl_idname = 'SD_PT_UrlLinkPanel'
 
-    def draw(self,context):
+    def draw(self, context):
         pref = get_pref()
-        col = self.layout.box().column()
+        layout = self.layout
+        layout.separator()
 
         for i, item in enumerate(pref.url_list):
-            row = col.row()
-            if not pref.url_edit:
-                row.operator('sd.url_link', text=item.name, icon='URL').url = item.url
-            else:
-                sub = row.row(align = 0)
-                sub.prop(item, 'name',text='')
-                sub.prop(item, 'url',text='')
-                remove = sub.operator('sd.url_list_action', icon='X', text='')
-                remove.index = i
-                remove.action = 'REMOVE'
+            layout.operator('sd.url_link', text=item.name, icon='URL').url = item.url
+
 
 class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -85,12 +79,10 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         pref = get_pref()
         layout = self.layout
 
-        row = layout.row(align=1)
-
-        row.popover(panel='SD_PT_UrlLinkPanel', text='', icon='URL')
-        row.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
-        row.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
-
+        # row = layout.row(align=1)
+        # row.popover(panel='SD_PT_UrlLinkPanel', text='', icon='URL')
+        layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
+        layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
 
     def draw(self, context):
         layout = self.layout
@@ -116,11 +108,11 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         if not context.window_manager.sd_looping_image:
             row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
         else:
-            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
+            row.prop(context.window_manager, 'sd_looping_image', text='嘉然而止', icon='PROP_OFF')
 
         # 声音
         if context.window_manager.sd_loading_sound:
-            row.prop(context.window_manager, 'sd_loading_sound', text='停止聆听', icon='CANCEL')
+            row.prop(context.window_manager, 'sd_loading_sound', text='嘉然而止', icon='CANCEL')
         else:
             row.operator('sd.sound_loader', text='聆听嘉然', icon='SOUND')
 
@@ -136,7 +128,7 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         col.separator(factor=0.5)
         # 链接
         box = col
-        box.prop(context.scene, 'sd_link_image_to_data_path', text='嘉之契约',icon='LINKED')
+        box.prop(context.scene, 'sd_link_image_to_data_path', text='嘉之契约', icon='LINKED')
         if context.scene.sd_link_image_to_data_path:
             col1 = box.column(align=1)
             col1.use_property_split = 1
@@ -154,6 +146,7 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
                 if context.scene.sd_link_material is not None and not context.scene.sd_link_material.is_grease_pencil:
                     nt = context.scene.sd_link_material.node_tree
                     col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
+
 
 class SD_PT_ImageSettingPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -293,6 +286,10 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
             row1.prop(item, 'shift', toggle=1)
 
 
+def app_menu(self, context):
+    SD_PT_UrlLinkPanel.draw(self, context)
+
+
 def register():
     bpy.types.Scene.sd_image_scale = FloatProperty(name='图像缩放', default=8, min=3, soft_min=5, soft_max=11)
     bpy.types.Scene.sd_image_interval = FloatProperty(name='播放间隔', default=0.5, min=0.01, soft_min=0.01, soft_max=3)
@@ -305,7 +302,7 @@ def register():
     bpy.utils.register_class(SD_PT_ImageSettingPanel)
     bpy.utils.register_class(SD_PT_SoundSettingPanel)
 
-    # bpy.types.TOPBAR_MT_editor_menus.append(draw_top_bar)
+    bpy.types.TOPBAR_MT_app.prepend(app_menu)
 
 
 def unregister():
@@ -316,4 +313,4 @@ def unregister():
     bpy.utils.unregister_class(SD_PT_ImageSettingPanel)
     bpy.utils.unregister_class(SD_PT_SoundSettingPanel)
 
-    # bpy.types.TOPBAR_MT_editor_menus.remove(draw_top_bar)
+    bpy.types.TOPBAR_MT_app.remove(app_menu)
