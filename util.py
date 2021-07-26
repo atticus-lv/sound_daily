@@ -23,7 +23,7 @@ friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Mi
                   'COMMA': 'Comma', 'PERIOD': 'Period',
                   'NONE': '无'}
 
-
+image_extensions = ('.png', '.jpg', '.jpeg', '.exr', '.hdr')
 
 
 def get_pref():
@@ -35,6 +35,9 @@ def viewlayer_fix_291(self, context):
     """ray_cast view layer version fix"""
     return context.view_layer.depsgraph if bpy.app.version >= (2, 91, 0) else context.view_layer
 
+def check_extension(input_string: str, extensions: set) -> bool:
+    for ex in extensions:
+        if input_string.endswith(ex): return True
 
 # Core Method
 #######################################

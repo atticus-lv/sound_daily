@@ -1,7 +1,40 @@
 import bpy
+import random
+
 from bpy.props import EnumProperty, StringProperty, BoolProperty, IntProperty, FloatProperty
 
 from .util import get_pref, friendly_names
+
+preset_link = {
+    '关注嘉然': 'https://space.bilibili.com/672328094',
+    '猫中毒': 'https://www.bilibili.com/video/BV1FX4y1g7u8',
+    '超级敏感': 'https://www.bilibili.com/video/BV1vQ4y1Z7C2',
+}
+
+
+class SD_OT_UrlListAction(bpy.types.Operator):
+    bl_idname = 'sd.url_list_action'
+    bl_label = '添嘉/删除/上移/下移/清空'
+
+    action: EnumProperty(items=[
+        ('ADD', 'Add', ''),
+        ('REMOVE', 'Remove', ''),
+    ])
+
+    index: IntProperty(name='Input Index')
+
+    def execute(self, context):
+        pref = get_pref()
+
+        if self.action == 'ADD':
+            item = pref.url_list.add()
+            key = random.choice(list(preset_link))
+            item.name = key
+            item.url = preset_link[key]
+        elif self.action == 'REMOVE':
+            pref.url_list.remove(self.index)
+
+        return {"FINISHED"}
 
 
 class SD_UL_ImageList(bpy.types.UIList):
@@ -141,6 +174,7 @@ class SD_OT_SoundListAction(bpy.types.Operator):
 
 
 def register():
+    bpy.utils.register_class(SD_OT_UrlListAction)
     bpy.utils.register_class(SD_OT_SoundListAction)
     bpy.utils.register_class(SD_UL_SoundList)
     bpy.utils.register_class(SD_OT_ImageListAction)
@@ -148,6 +182,7 @@ def register():
 
 
 def unregister():
+    bpy.utils.unregister_class(SD_OT_UrlListAction)
     bpy.utils.unregister_class(SD_OT_SoundListAction)
     bpy.utils.unregister_class(SD_UL_SoundList)
     bpy.utils.unregister_class(SD_OT_ImageListAction)

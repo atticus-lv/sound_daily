@@ -20,7 +20,7 @@ def update_path_name(self, context):
 
 class SoundListItemProperty(PropertyGroup):
     # base
-    name: StringProperty(name='起一个好听的名字', default='新的圣经')
+    name: StringProperty(name='起一个好听的名字', default='新的语音')
     path: StringProperty(name='音频路径', description='音频路径，也可以用带有音频的MP4代替', subtype='FILE_PATH', update=update_path_name)
     enable: BoolProperty(name='启用音频', default=True)
     # event
@@ -44,15 +44,15 @@ __tempPreview__ = {}  # store in global, delete in unregister
 image_extensions = ('.png', '.jpg', '.jpeg', '.exr', '.hdr')
 
 
+def check_extension(input_string: str, extensions: set) -> bool:
+    for ex in extensions:
+        if input_string.endswith(ex): return True
+
+
 def clear_preview_cache():
     for preview in __tempPreview__.values():
         bpy.utils.previews.remove(preview)
     __tempPreview__.clear()
-
-
-def check_extension(input_string: str, extensions: set) -> bool:
-    for ex in extensions:
-        if input_string.endswith(ex): return True
 
 
 def enum_thumbnails_from_dir_items(self, context):
@@ -137,19 +137,23 @@ class ImageDirListItemProperty(PropertyGroup):
     thumbnails: EnumProperty(name='子文件夹', items=enum_thumbnails_from_dir_items, update=update_image)
 
 
-class SD_OT_UrlLink(bpy.types.Operator):
-    bl_idname = 'sd.url_link'
-    bl_label = 'URL Link'
 
-    url_link: StringProperty(name='引流链接')
 
-    def execute(self, context):
-        webbrowser.open(self.url_link)
-        return {"FINISHED"}
+
+class UrlListItemProperty(PropertyGroup):
+    name: StringProperty(name='名字',default='新的链接')
+    url: StringProperty(name='链接', default='https://space.bilibili.com/672328094')
 
 
 # Preference
 ####################
+
+preset_link = {
+    '关注嘉然': 'https://space.bilibili.com/672328094',
+    '猫中毒': 'https://www.bilibili.com/video/BV1FX4y1g7u8',
+    '超级敏感': 'https://www.bilibili.com/video/BV1vQ4y1Z7C2',
+}
+
 
 class SD_Preference(bpy.types.AddonPreferences):
     bl_idname = __package__
@@ -158,27 +162,46 @@ class SD_Preference(bpy.types.AddonPreferences):
     title: StringProperty(name='标题', default='关注嘉心糖，顿顿破大防')
 
     # sound
+    #####################
     sound_list: CollectionProperty(type=SoundListItemProperty)
     sound_list_index: IntProperty(default=0, min=0)
 
     # image
+    #####################
     use_image_name: BoolProperty(name='显示名字', default=False)
     rand_image: BoolProperty(name='随机下一张', default=False)
 
     image_dir_list: CollectionProperty(type=ImageDirListItemProperty)
     image_dir_list_index: IntProperty(default=0, min=0, name='激活项')
 
+    # UR:
+    ##################
+    url_list: CollectionProperty(type=UrlListItemProperty)
+    url_edit: BoolProperty(name='编辑链接', default=False)
+
     def draw(self, context):
         layout = self.layout
-        col = layout.column()
+        col = layout.box().column(align=1)
 
-        col.operator('sd.url_link', text='关注嘉然',
-                     icon='URL').url_link = 'https://space.bilibili.com/672328094'
-        col.operator('sd.url_link', text='猫中毒',
-                     icon='URL').url_link = 'https://www.bilibili.com/video/BV1FX4y1g7u8'
-        col.operator('sd.url_link', text='超级敏感',
-                     icon='URL').url_link = 'https://www.bilibili.com/video/BV1vQ4y1Z7C2'
+        row = col.split(factor=0.6)
+        row.separator()
+        row = row.row(align = 1)
+        row.prop(self, 'url_edit', icon='EDITMODE_HLT')
+        row.operator('sd.url_list_action', icon='ADD', text='添加链接').action = 'ADD'
 
+        col.separator(factor = 0.5)
+
+        for i, item in enumerate(self.url_list):
+            row = col.box().row()
+            if not self.url_edit:
+                row.operator('sd.url_link', text=item.name, icon='URL').url = item.url
+            else:
+                sub = row.row(align = 0)
+                sub.prop(item, 'name',text='')
+                sub.prop(item, 'url',text='')
+                remove = sub.operator('sd.url_list_action', icon='X', text='')
+                remove.index = i
+                remove.action = 'REMOVE'
 
 def bind_image_props():
     bpy.types.Scene.sd_link_image_to_data_path = BoolProperty(default=False)
@@ -207,14 +230,14 @@ def register():
 
     bpy.utils.register_class(SoundListItemProperty)
     bpy.utils.register_class(ImageDirListItemProperty)
-    bpy.utils.register_class(SD_OT_UrlLink)
+    bpy.utils.register_class(UrlListItemProperty)
     bpy.utils.register_class(SD_Preference)
 
 
 def unregister():
     bpy.utils.unregister_class(SoundListItemProperty)
     bpy.utils.unregister_class(ImageDirListItemProperty)
-    bpy.utils.unregister_class(SD_OT_UrlLink)
+    bpy.utils.unregister_class(UrlListItemProperty)
     bpy.utils.unregister_class(SD_Preference)
 
     clear_preview_cache()

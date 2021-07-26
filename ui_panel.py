@@ -51,6 +51,28 @@ class SD_MT_ImageFolderSwitcher(bpy.types.Menu):
         layout.separator()
         layout.label(text='选择当前图包')
 
+class SD_PT_UrlLinkPanel(bpy.types.Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_category = ''
+    bl_label = ''
+    bl_idname = 'SD_PT_UrlLinkPanel'
+
+    def draw(self,context):
+        pref = get_pref()
+        col = self.layout.box().column()
+
+        for i, item in enumerate(pref.url_list):
+            row = col.row()
+            if not pref.url_edit:
+                row.operator('sd.url_link', text=item.name, icon='URL').url = item.url
+            else:
+                sub = row.row(align = 0)
+                sub.prop(item, 'name',text='')
+                sub.prop(item, 'url',text='')
+                remove = sub.operator('sd.url_list_action', icon='X', text='')
+                remove.index = i
+                remove.action = 'REMOVE'
 
 class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -60,12 +82,15 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
     bl_options = {'HEADER_LAYOUT_EXPAND'}
 
     def draw_header(self, context):
-        layout = self.layout
         pref = get_pref()
+        layout = self.layout
 
-        layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
-        layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
-        layout.separator(factor=0.5)
+        row = layout.row(align=1)
+
+        row.popover(panel='SD_PT_UrlLinkPanel', text='', icon='URL')
+        row.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
+        row.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
+
 
     def draw(self, context):
         layout = self.layout
@@ -275,6 +300,7 @@ def register():
 
     bpy.utils.register_class(SD_OT_ImageDirSelector)
     bpy.utils.register_class(SD_MT_ImageFolderSwitcher)
+    bpy.utils.register_class(SD_PT_UrlLinkPanel)
     bpy.utils.register_class(SD_PT_MainViewPanel)
     bpy.utils.register_class(SD_PT_ImageSettingPanel)
     bpy.utils.register_class(SD_PT_SoundSettingPanel)
@@ -285,6 +311,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(SD_OT_ImageDirSelector)
     bpy.utils.unregister_class(SD_MT_ImageFolderSwitcher)
+    bpy.utils.unregister_class(SD_PT_UrlLinkPanel)
     bpy.utils.unregister_class(SD_PT_MainViewPanel)
     bpy.utils.unregister_class(SD_PT_ImageSettingPanel)
     bpy.utils.unregister_class(SD_PT_SoundSettingPanel)

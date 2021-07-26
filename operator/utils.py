@@ -1,5 +1,6 @@
 import bpy
 import os
+import webbrowser
 
 from bpy_extras.io_utils import ExportHelper
 from bpy.props import EnumProperty, StringProperty, BoolProperty, CollectionProperty, IntProperty, FloatProperty
@@ -8,6 +9,20 @@ from ..util import KeyController
 from ..util import ignored_keys, get_pref
 
 from .. import __folder_name__
+
+
+class SD_OT_UrlLink(bpy.types.Operator):
+    bl_idname = 'sd.url_link'
+    bl_label = 'URL Link'
+
+    url: StringProperty(name='引流链接')
+
+    def execute(self, context):
+        if self.url.startswith('https://'):
+            webbrowser.open(self.url)
+        else:
+            self.report({"ERROR"}, '请输入正确链接')
+        return {"FINISHED"}
 
 
 class SD_OT_OpenFolder(bpy.types.Operator):
@@ -38,7 +53,7 @@ class SD_OT_BatchImport(bpy.types.Operator, ExportHelper):
 
     def draw(self, context):
         if self.add_type == 'IMG':
-            self.layout.label(text='请选中只包含JPG或者PNG的文件夹', icon='ERROR')
+            self.layout.label(text='请选中包含图像文件夹（支持jpg,png,exr,hdr）', icon='ERROR')
         else:
             self.layout.label(text='请选中音乐文件', icon='ERROR')
 
@@ -107,9 +122,11 @@ def register():
     bpy.utils.register_class(SD_OT_BatchImport)
     bpy.utils.register_class(SD_OT_OpenFolder)
     bpy.utils.register_class(SD_OT_SetKeymap)
+    bpy.utils.register_class(SD_OT_UrlLink)
 
 
 def unregister():
     bpy.utils.unregister_class(SD_OT_BatchImport)
     bpy.utils.unregister_class(SD_OT_OpenFolder)
     bpy.utils.unregister_class(SD_OT_SetKeymap)
+    bpy.utils.unregister_class(SD_OT_UrlLink)
