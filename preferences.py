@@ -41,11 +41,18 @@ class SoundListItemProperty(PropertyGroup):
 
 __tempPreview__ = {}  # store in global, delete in unregister
 
+image_extensions = ('.png', '.jpg', '.jpeg', '.exr', '.hdr')
+
 
 def clear_preview_cache():
     for preview in __tempPreview__.values():
         bpy.utils.previews.remove(preview)
     __tempPreview__.clear()
+
+
+def check_extension(input_string: str, extensions: set) -> bool:
+    for ex in extensions:
+        if input_string.endswith(ex): return True
 
 
 def enum_thumbnails_from_dir_items(self, context):
@@ -68,7 +75,7 @@ def enum_thumbnails_from_dir_items(self, context):
     if directory and os.path.exists(directory):
         image_paths = []
         for fn in os.listdir(directory):
-            if fn.lower().endswith(".jpg") or fn.lower().endswith(".png"):
+            if check_extension(fn.lower(), image_extensions):
                 image_paths.append(fn)
 
         for i, name in enumerate(image_paths):

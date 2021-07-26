@@ -24,13 +24,17 @@ friendly_names = {'LEFTMOUSE': 'Left', 'RIGHTMOUSE': 'Right', 'MIDDLEMOUSE': 'Mi
                   'NONE': '无'}
 
 
+
+
 def get_pref():
     """get preferences of this plugin"""
     return bpy.context.preferences.addons.get(__folder_name__).preferences
 
+
 def viewlayer_fix_291(self, context):
     """ray_cast view layer version fix"""
     return context.view_layer.depsgraph if bpy.app.version >= (2, 91, 0) else context.view_layer
+
 
 # Core Method
 #######################################
@@ -112,8 +116,6 @@ class SD_DrawMessage():
 import bpy.utils.previews
 import os
 
-extensions = ('.png', '.jpg', '.jpeg')
-
 
 class SD_Preview():
     def __init__(self, dirname):
@@ -128,7 +130,7 @@ class SD_Preview():
 
         # Generate the thumbnails
         for i, image_name in enumerate(os.listdir(self.dir_path)):
-            if image_name.endswith(extensions):
+            if image_name.endswith(image_extensions):
                 filepath = os.path.join(self.dir_path, image_name)
                 thumb = pcoll.load(image_name, filepath, 'IMAGE')  # name, image_path, type
                 self.enum_items.append((image_name, image_name, "", thumb.icon_id, i))
