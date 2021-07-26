@@ -83,6 +83,7 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         # row.popover(panel='SD_PT_UrlLinkPanel', text='', icon='URL')
         layout.prop(pref, 'title', text='', emboss=True if context.window_manager.sd_show_pref else False)
         layout.prop(context.window_manager, 'sd_show_pref', icon='PREFERENCES', emboss=False, text='')
+        layout.separator(factor=0.5)
 
     def draw(self, context):
         layout = self.layout
@@ -121,9 +122,9 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         # 贴花
         row = col.row()
         decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道嘉然')
-        curr_dir_item = pref.image_dir_list[pref.image_dir_list_index]
-        decal.image_name = curr_dir_item.thumbnails
-        decal.image_dir_path = curr_dir_item.path
+        if item:
+            decal.image_name = item.thumbnails
+            decal.image_dir_path = item.path
 
         col.separator(factor=0.5)
         # 链接

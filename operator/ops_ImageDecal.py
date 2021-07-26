@@ -221,6 +221,8 @@ class SD_OT_ImageDecal(bpy.types.Operator):
         elif event.type in {'ESC', "RIGHTMOUSE"}:
             bpy.data.objects.remove(self.object)
             bpy.data.objects.remove(self.image_mesh)
+
+            self._cache_objs.clear()
             # remove draw_handler_add
             bpy.types.SpaceView3D.draw_handler_remove(self._handle, 'WINDOW')
             context.window.cursor_modal_restore()
