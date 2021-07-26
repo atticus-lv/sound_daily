@@ -20,7 +20,7 @@ def draw_move_object_callback_px(self, context):
     offset = 0.5 * msg.get_text_length(title)
     offset1 = 0.2 * msg.get_text_length(title)
 
-    msg.draw_title(x=x_align - offset, y=y_align + 150, text=title)
+    msg.draw_title(x=x_align - offset, y=y_align + 75, text=title)
     msg.draw_info(x=x_align - offset1, y=y_align + 50, text=tips1)
     msg.draw_info(x=x_align - offset1, y=y_align + 25, text=tips2)
     msg.draw_info(x=x_align - offset1, y=y_align, text=tips3)

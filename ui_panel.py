@@ -85,27 +85,50 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
 
         col = layout.column()
         col.scale_y = 1.25
+
+        # 播放
+        row = col.row()
         if not context.window_manager.sd_looping_image:
-            col.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
-
+            row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
         else:
-            col.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
-
-        col.separator(factor=0.5)
+            row.prop(context.window_manager, 'sd_looping_image', text='停止观想', icon='PROP_OFF')
 
         # 声音
-        row = col.row()
         if context.window_manager.sd_loading_sound:
             row.prop(context.window_manager, 'sd_loading_sound', text='停止聆听', icon='CANCEL')
         else:
-            row.operator('sd.sound_loader', text='嘉然之声', icon='SOUND')
+            row.operator('sd.sound_loader', text='聆听嘉然', icon='SOUND')
+
+        col.separator(factor=0.5)
 
         # 贴花
-        decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道天下')
+        row = col.row()
+        decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道嘉然')
         curr_dir_item = pref.image_dir_list[pref.image_dir_list_index]
         decal.image_name = curr_dir_item.thumbnails
         decal.image_dir_path = curr_dir_item.path
 
+        col.separator(factor=0.5)
+        # 链接
+        box = col
+        box.prop(context.scene, 'sd_link_image_to_data_path', text='嘉之契约',icon='LINKED')
+        if context.scene.sd_link_image_to_data_path:
+            col1 = box.column(align=1)
+            col1.use_property_split = 1
+            col1.use_property_decorate = 0
+            col1.prop(context.scene, 'sd_link_image_type')
+
+            if context.scene.sd_link_image_type == 'WORLD':
+                col1.prop(context.scene, 'sd_link_world')
+                if context.scene.sd_link_world is not None:
+                    nt = context.scene.sd_link_world.node_tree
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
+
+            else:
+                col1.prop(context.scene, 'sd_link_material')
+                if context.scene.sd_link_material is not None and not context.scene.sd_link_material.is_grease_pencil:
+                    nt = context.scene.sd_link_material.node_tree
+                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
 
 class SD_PT_ImageSettingPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -140,28 +163,6 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
         col1.use_property_decorate = 0
         col1.prop(pref, 'rand_image')
         col1.prop(context.scene, 'sd_image_interval', slider=1)
-
-        box = col.box()
-        row1 = box.row(align=1)
-        row1.prop(context.scene, 'sd_link_image_to_data_path', text='')
-        row1.label(text='关联', icon='LINKED')
-        col1 = box.column(align=1)
-        col1.use_property_split = 1
-        col1.use_property_decorate = 0
-        if context.scene.sd_link_image_to_data_path:
-            col1.prop(context.scene, 'sd_link_image_type')
-
-            if context.scene.sd_link_image_type == 'WORLD':
-                col1.prop(context.scene, 'sd_link_world')
-                if context.scene.sd_link_world is not None:
-                    nt = context.scene.sd_link_world.node_tree
-                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
-
-            else:
-                col1.prop(context.scene, 'sd_link_material')
-                if context.scene.sd_link_material is not None and not context.scene.sd_link_material.is_grease_pencil :
-                    nt = context.scene.sd_link_material.node_tree
-                    col1.prop_search(context.scene, 'sd_link_image_node', nt, 'nodes')
 
         # Image List
         #########################

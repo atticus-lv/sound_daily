@@ -175,8 +175,8 @@ class SD_Preference(bpy.types.AddonPreferences):
 
 def bind_image_props():
     bpy.types.Scene.sd_link_image_to_data_path = BoolProperty(default=False)
-    bpy.types.Scene.sd_link_image_type = EnumProperty(name='关联类型', items=[('WORLD', '世界', ''),
-                                                                          ('MAT', '材质', '')])
+    bpy.types.Scene.sd_link_image_type = EnumProperty(name='契约类型', items=[('WORLD', '世界', '', 'WORLD', 0),
+                                                                          ('MAT', '材质', '', 'MATERIAL', 1)])
     bpy.types.Scene.sd_link_world = PointerProperty(name='世界', type=bpy.types.World)
     bpy.types.Scene.sd_link_material = PointerProperty(name='材质', type=bpy.types.Material)
     bpy.types.Scene.sd_link_image_node = StringProperty(name='节点')
