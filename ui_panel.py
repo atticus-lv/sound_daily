@@ -90,41 +90,52 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
         pref = get_pref()
 
         # 照片
+        ####################
         item = pref.image_dir_list[pref.image_dir_list_index] if len(pref.image_dir_list) != 0 else None
         if item:
-            col = layout.column(align=1)
-            row = col.split(factor=0.75)
-            # 显示名字
-            l = row.label(text=item.thumbnails) if pref.use_image_name else row.separator()
+            col = layout.box().column(align=1)
+            row = col.split(factor=0.7)
+
             # 弹出列表选择
+            l = row.label(text=item.thumbnails) if pref.use_image_name else row.separator()  # 显示名字
             row.menu("SD_MT_ImageFolderSwitcher", text=item.name if item else '无')
+
+            # 图
             col.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale,
                                    show_labels=pref.use_image_name)
 
+            # 切换 播放
+            ###############
+            row = col.row(align=1)
+            row.scale_y = 1.25
+            row.scale_x = 1.15
+            # 上一张
+            row.operator('sd.image_switch', text='', icon='TRIA_LEFT').next = False
+            # 播放
+            if not context.window_manager.sd_looping_image:
+                row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
+            else:
+                row.prop(context.window_manager, 'sd_looping_image', text='嘉然而止', icon='PROP_OFF')
+            # 下一张
+            row.operator('sd.image_switch', text='', icon='TRIA_RIGHT').next = True
+
+            # 贴花
+            row = col.row()
+            row.scale_y = 1.25
+            decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道嘉然')
+            if item:
+                decal.image_name = item.thumbnails
+                decal.image_dir_path = item.path
+
+        # 其他
         col = layout.column()
         col.scale_y = 1.25
 
-        # 播放
-        row = col.row()
-        if not context.window_manager.sd_looping_image:
-            row.operator('sd.image_player', text='观想嘉然', icon='PROP_ON')
-        else:
-            row.prop(context.window_manager, 'sd_looping_image', text='嘉然而止', icon='PROP_OFF')
-
         # 声音
         if context.window_manager.sd_loading_sound:
-            row.prop(context.window_manager, 'sd_loading_sound', text='嘉然而止', icon='CANCEL')
+            col.prop(context.window_manager, 'sd_loading_sound', text='嘉然而止', icon='CANCEL')
         else:
-            row.operator('sd.sound_loader', text='聆听嘉然', icon='SOUND')
-
-        col.separator(factor=0.5)
-
-        # 贴花
-        row = col.row()
-        decal = row.operator('sd.image_decal', icon='IMAGE_PLANE', text='布道嘉然')
-        if item:
-            decal.image_name = item.thumbnails
-            decal.image_dir_path = item.path
+            col.operator('sd.sound_loader', text='聆听嘉然', icon='SOUND')
 
         col.separator(factor=0.5)
         # 链接
@@ -168,20 +179,15 @@ class SD_PT_ImageSettingPanel(bpy.types.Panel):
         # Image setting
         ########################
         box = col.box()
-        box.label(text='预览', icon='IMAGE_BACKGROUND')
+        row = box.split(factor=0.75)
+        row.label(text='预览设置', icon='IMAGE_BACKGROUND')
         col1 = box.column(align=1)
         col1.use_property_split = 1
         col1.use_property_decorate = 0
-        col1.prop(pref, 'use_image_name')
-        col1.prop(context.scene, 'sd_image_scale', slider=1)
-
-        box = col.box()
-        box.label(text='播放', icon='PROP_ON')
-        col1 = box.column(align=1)
-        col1.use_property_split = 1
-        col1.use_property_decorate = 0
-        col1.prop(pref, 'rand_image')
-        col1.prop(context.scene, 'sd_image_interval', slider=1)
+        col1.prop(pref, 'rand_image', text='随机切换')
+        col1.prop(pref, 'use_image_name', text='显示当前名字')
+        col1.prop(context.scene, 'sd_image_scale', slider=1, text='图像缩放')
+        col1.prop(context.scene, 'sd_image_interval', slider=1, text='播放间隔')
 
         # Image List
         #########################

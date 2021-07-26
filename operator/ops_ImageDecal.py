@@ -27,7 +27,7 @@ def draw_move_object_callback_px(self, context):
 
 
 class SD_OT_ImageDecal(bpy.types.Operator):
-    """Move Object"""
+    """对当前预览图像进行贴花"""
     bl_idname = "sd.image_decal"
     bl_label = "布道天下"
     bl_options = {'REGISTER', 'GRAB_CURSOR', 'BLOCKING', 'UNDO'}
