@@ -15,6 +15,7 @@ preset_link = {
 class SD_OT_UrlListAction(bpy.types.Operator):
     bl_idname = 'sd.url_list_action'
     bl_label = '添嘉/删除/上移/下移/清空'
+    bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=[
         ('ADD', 'Add', ''),
@@ -52,7 +53,7 @@ class SD_UL_ImageList(bpy.types.UIList):
 class SD_OT_ImageListAction(bpy.types.Operator):
     """操作选中项"""
     bl_idname = 'sd.image_list_action'
-    bl_label = '添嘉/删除/上移/下移/清空'
+    bl_label = '列表操作'
     bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=[
@@ -97,6 +98,15 @@ class SD_OT_ImageListAction(bpy.types.Operator):
 
         return {"FINISHED"}
 
+    def draw(self, context):
+        self.layout.label(text="确认全部清空？此操作不可撤回")
+
+    def invoke(self, context, event):
+        if self.action == 'CLEAR':
+            return context.window_manager.invoke_props_dialog(self, width=300)
+
+        return self.execute(context)
+
 
 class SD_UL_SoundList(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
@@ -127,7 +137,7 @@ class SD_UL_SoundList(bpy.types.UIList):
 class SD_OT_SoundListAction(bpy.types.Operator):
     """操作选中项"""
     bl_idname = 'sd.sound_list_action'
-    bl_label = '添嘉/删除/上移/下移/清空'
+    bl_label = '列表操作'
     bl_options = {"REGISTER", "UNDO"}
 
     action: EnumProperty(items=[
@@ -137,6 +147,7 @@ class SD_OT_SoundListAction(bpy.types.Operator):
         ('DOWN', 'Down', ''),
         ('CLEAR', 'Clear All', ''),
     ])
+    confirm: BoolProperty(default=False)
     # add action
     name: StringProperty(default='')
     path: StringProperty(default='')
@@ -171,6 +182,15 @@ class SD_OT_SoundListAction(bpy.types.Operator):
             pref.sound_list.clear()
 
         return {"FINISHED"}
+
+    def draw(self, context):
+        self.layout.label(text="确认全部清空？此操作不可撤回")
+
+    def invoke(self, context, event):
+        if self.action == 'CLEAR':
+            return context.window_manager.invoke_props_dialog(self, width=300)
+
+        return self.execute(context)
 
 
 def register():

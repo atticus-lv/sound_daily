@@ -93,7 +93,7 @@ import blf
 class SD_DrawMessage():
     def __init__(self, font_id):
         self.font_id = font_id
-        blf.color(font_id, 255, 255, 255, 0.75)
+        blf.color(font_id, 0.82, 0.25, 0.25, 0.75)
 
     def get_text_length(self, text, height=False):
         return blf.dimensions(self.font_id, text)[0] if not height else blf.dimensions(self.font_id, text)[1]
