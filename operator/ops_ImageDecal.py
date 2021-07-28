@@ -33,7 +33,7 @@ class SD_OT_ImageDecal(bpy.types.Operator):
     bl_options = {'REGISTER', 'GRAB_CURSOR', 'BLOCKING', 'UNDO'}
 
     # cache
-    _cache_objs = []
+    _cache_objs = None
 
     # Image
     image_name: StringProperty()
@@ -78,6 +78,8 @@ class SD_OT_ImageDecal(bpy.types.Operator):
 
         # TODO 参考图/贴花切换选项（或者其他方式）
 
+        # init cache
+        self._cache_objs = []
         # image Mesh
         self.add_image_mesh(context)
         image_size = self.image_mesh.dimensions.x
