@@ -8,6 +8,7 @@ import webbrowser
 
 from .util import SD_Preview
 from .util import get_pref
+from .t3dn_bip import previews
 
 
 # Sound items
@@ -51,7 +52,7 @@ def check_extension(input_string: str, extensions: set) -> bool:
 
 def clear_preview_cache():
     for preview in __tempPreview__.values():
-        bpy.utils.previews.remove(preview)
+        previews.remove(preview)
     __tempPreview__.clear()
 
 
@@ -137,12 +138,16 @@ class ImageDirListItemProperty(PropertyGroup):
     thumbnails: EnumProperty(name='子文件夹', items=enum_thumbnails_from_dir_items, update=update_image)
 
 
-
-
-
 class UrlListItemProperty(PropertyGroup):
-    name: StringProperty(name='名字',default='新的链接')
+    name: StringProperty(name='名字', default='新的链接')
     url: StringProperty(name='链接', default='https://space.bilibili.com/672328094')
+
+
+from .t3dn_bip.ops import InstallPillow
+
+
+class T3DN_OT_bip_showcase_install_pillow(bpy.types.Operator, InstallPillow):
+    bl_idname = 't3dn.bip_showcase_install_pillow'
 
 
 # Preference
@@ -181,27 +186,29 @@ class SD_Preference(bpy.types.AddonPreferences):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator('t3dn.bip_showcase_install_pillow',text= '安装Pillow（加快预览加载）')
         col = layout.box().column(align=1)
 
         row = col.split(factor=0.6)
         row.separator()
-        row = row.row(align = 1)
+        row = row.row(align=1)
         row.prop(self, 'url_edit', icon='EDITMODE_HLT')
         row.operator('sd.url_list_action', icon='ADD', text='添加链接').action = 'ADD'
 
-        col.separator(factor = 0.5)
+        col.separator(factor=0.5)
 
         for i, item in enumerate(self.url_list):
             row = col.box().row()
             if not self.url_edit:
                 row.operator('sd.url_link', text=item.name, icon='URL').url = item.url
             else:
-                sub = row.row(align = 0)
-                sub.prop(item, 'name',text='')
-                sub.prop(item, 'url',text='')
+                sub = row.row(align=0)
+                sub.prop(item, 'name', text='')
+                sub.prop(item, 'url', text='')
                 remove = sub.operator('sd.url_list_action', icon='X', text='')
                 remove.index = i
                 remove.action = 'REMOVE'
+
 
 def bind_image_props():
     bpy.types.Scene.sd_link_image_to_data_path = BoolProperty(default=False)
@@ -221,7 +228,7 @@ def del_bind_image_props():
 
 
 def register():
-    img_preview = bpy.utils.previews.new()
+    img_preview = previews.new()
     img_preview.img_dir = ""
     img_preview.img = ()
     __tempPreview__["sd_thumbnails"] = img_preview
@@ -231,6 +238,7 @@ def register():
     bpy.utils.register_class(SoundListItemProperty)
     bpy.utils.register_class(ImageDirListItemProperty)
     bpy.utils.register_class(UrlListItemProperty)
+    bpy.utils.register_class(T3DN_OT_bip_showcase_install_pillow)
     bpy.utils.register_class(SD_Preference)
 
 
@@ -238,6 +246,7 @@ def unregister():
     bpy.utils.unregister_class(SoundListItemProperty)
     bpy.utils.unregister_class(ImageDirListItemProperty)
     bpy.utils.unregister_class(UrlListItemProperty)
+    bpy.utils.unregister_class(T3DN_OT_bip_showcase_install_pillow)
     bpy.utils.unregister_class(SD_Preference)
 
     clear_preview_cache()
