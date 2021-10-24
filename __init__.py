@@ -50,8 +50,8 @@ def register():
         if name in sys.modules and hasattr(sys.modules[name], 'register'):
             try:
                 sys.modules[name].register()
-            except ValueError:  # open a template file may cause this problem
-                pass
+            except ValueError as e:  # open a template file may cause this problem
+                print(e)
 
 
 def unregister():

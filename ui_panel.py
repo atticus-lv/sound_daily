@@ -102,7 +102,7 @@ class SD_PT_MainViewPanel(bpy.types.Panel):
 
             # 图
             col.template_icon_view(item, "thumbnails", scale=context.scene.sd_image_scale,
-                                   show_labels=pref.use_image_name)
+                                   show_labels=pref.use_image_name,scale_popup=context.scene.sd_image_scale)
 
             # 切换 播放
             ###############
@@ -235,7 +235,7 @@ class SD_PT_SoundSettingPanel(bpy.types.Panel):
         #########################
         row = col.split(factor=0.75)
         row.label(text='文件列表', icon='FILE')
-        row.operator('sd.batch_import').add_type = 'SOUND'
+        # row.operator('sd.batch_import').add_type = 'SOUND'
 
         row = col.row()
         row.template_list(
@@ -309,7 +309,6 @@ def register():
     bpy.utils.register_class(SD_PT_ImageSettingPanel)
     bpy.utils.register_class(SD_PT_SoundSettingPanel)
 
-    bpy.types.TOPBAR_MT_app.prepend(app_menu)
 
 
 def unregister():
@@ -320,4 +319,3 @@ def unregister():
     bpy.utils.unregister_class(SD_PT_ImageSettingPanel)
     bpy.utils.unregister_class(SD_PT_SoundSettingPanel)
 
-    bpy.types.TOPBAR_MT_app.remove(app_menu)
